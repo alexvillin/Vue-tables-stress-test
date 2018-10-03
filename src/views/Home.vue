@@ -1,8 +1,8 @@
 <template>
-    <div>
-    <h3>HOME</h3>
-    <pre>
-    #Task requirements
+    <div id="legend">
+
+    <h3>Task requirements</h3>
+        <pre>
 
     Create a project on VueJs with two pages.
     The transition between pages takes place using the button named "Data A", "Data B". When switching to another page, the address bar should be changed.
@@ -14,8 +14,9 @@
     The height of the line should vary depending on the data in the "transcription" field.
     Implement a search box with filtering in all fields.
     Implement select, which changes the "status" data value.
-    Depending on the selected status, the color of the marker will change in the "Status" column: -0/1 - green
-
+    Depending on the selected status, the color of the marker will change in the "Status" column: 
+    
+    0/1 - green
     2 - yellow
     3rd - red
     4 - gray
@@ -36,3 +37,10 @@
     </pre>
     </div>
 </template>
+
+
+<style>
+    #legend{
+        text-align: left;
+    }
+</style>

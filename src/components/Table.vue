@@ -64,14 +64,13 @@
                 type: Number,
                 default: 3
             },
-            info: Boolean,
+            info: Boolean, //show tableInfo
         },
 
         data: function() {
             return {
                 page: 1,
                 loadMoreCounter: 1,
-                //                rowsPerPage: this.perPage,
                 currentTarget: {},
                 selectedRows: [],
                 markers: this.$store.state.markers,
@@ -164,8 +163,7 @@
                     }
                 })
                 this.$store.commit('setColumnsDimentions', columns);
-                //                    console.log(this.$store.state.columns.id);
-                return this.$store.state.columns;
+                return columns;
             },
 
 
@@ -176,44 +174,45 @@
                 this.loadMoreCounter = 1;
             },
 
-            //            onMouseDown: function(e) {
-            //                this.currentTarget = e.target;
-            //                this.targetName = $(e.target).attr('name');
-            //            },
-            //            onMouseMove: function(e) {
-            //                if (e.which) {
-            //                    var newWidth = e.pageX - this.currentTarget.offsetLeft;
-            //                    if (newWidth > 20) {
-            //                        $('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
-            //                        //_.debounce(function(){
-            //                        //    console.log(123);
-            //                        shared.dimentions[this.targetName] = newWidth;
-            //
-            //                        //}, 1000)
-            //                    }
-            //                }
-            //            },
-            //            onMouseUp: function() {
-            //                this.currentTarget = {}
-            //                api.localStorage.tableCellsWidth.set(shared.dimentions);
-            //            },
-            toggleSelected: function() {
-                this.showOnlySelected = !this.showOnlySelected
+            onMouseDown(e) {
+                this.currentTarget = e.target;
+                console.log(e.target);
+                //this.targetName = $(e.target).attr('name');
             },
-            loadMoreCheck: function() {
+            onMouseMove(e) {
+                if (e.which) {
+                    let newWidth = e.pageX - this.currentTarget.offsetLeft;
+                    if (newWidth > 20) {
+                       // $('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
+                        //_.debounce(function(){
+                        //    console.log(123);
+                        this.columnSizes[this.targetName] = newWidth;
+                        this.$store.commit('setColumnsDimentions', this.columnSizes);
+                        //}, 1000)
+                    }
+                }
+            },
+            onMouseUp() {
+                this.currentTarget = {}
+                Api.localStorage.tableCellsWidth.set(this.columnSizes);
+            },
+            toggleSelected() {
+                this.shared.showOnlySelected = !this.shared.showOnlySelected
+            },
+            loadMoreCheck() {
                 if (this.loadMode !== 'lazyLoad') {
                     return;
                 }
-                //                var clientWindowHeight = document.documentElement.clientHeight;
-                //                var pageOffset = window.pageYOffset || document.documentElement.scrollTop;
-                //                var tableOffset = $('table').offset().top + $('table').height();
-                //                if (pageOffset == tableOffset) {
-                //                    console.log('stickyheader');
-                //                }
-                //                if (clientWindowHeight + pageOffset > tableOffset) {
-                //                    console.log(clientWindowHeight + pageOffset, tableOffset);
-                //                    this.loadMoreCounter++;
-                //                }
+                var clientWindowHeight = document.documentElement.clientHeight;
+                var pageOffset = window.pageYOffset || document.documentElement.scrollTop;
+                //var tableOffset = $('table').offset().top + $('table').height();
+                if (pageOffset == tableOffset) {
+                   // console.log('stickyheader');
+                }
+                if (clientWindowHeight + pageOffset > tableOffset) {
+                   // console.log(clientWindowHeight + pageOffset, tableOffset);
+                    this.loadMoreCounter++;
+                }
             },
         },
     }
@@ -240,7 +239,7 @@
 
     th:after {
         position: absolute;
-        width: 10px;
+        width: 3px;
         height: 100%;
         top: 0;
         right: 0px;

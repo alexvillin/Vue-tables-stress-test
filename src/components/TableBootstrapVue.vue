@@ -1,11 +1,11 @@
 <template>
 
     <div v-if="!loadingCompleted" class="loading"></div>
-    <div v-else v-cloak keep-alive>
+    <div v-else v-cloak keep-alive variant="dark">
 
         <TableInfo :commonRowsAmount="filteredData.length" :shownRowsAmount="items.length" :shared="shared" />
 
-        <b-table striped hover :items="items">
+        <b-table striped hover :items="items" head-variant="light">
             <template slot="id" slot-scope="data">
                 <b-form-checkbox name="selectedRows" v-model="selectedRows" :value="data.item.id"></b-form-checkbox>
                 <div :style="{'background-color': markers[data.item.status]}" class="circle_status"></div>

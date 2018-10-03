@@ -5,6 +5,7 @@
             <b-navbar-brand>Tables stress test</b-navbar-brand>
             <b-collapse is-nav id="nav_collapse" class="justify-content-end">
                 <b-navbar-nav>
+                    <b-nav-item to="/" sm="auto">Task legend</b-nav-item>
                     <b-nav-item to="/dataA" sm="auto">Data A (native)</b-nav-item>
                     <b-nav-item to="/dataB" sm="auto">Data B (bootstrap-vue)</b-nav-item>
                 </b-navbar-nav>
