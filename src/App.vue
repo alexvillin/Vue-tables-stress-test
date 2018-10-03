@@ -39,6 +39,14 @@
         display: none;
     }
 
+    table {
+        table-layout: fixed;
+    }
+    td, th {
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+    
     .loading {
         border: 10px solid #f3f3f3;
         border-radius: 50%;

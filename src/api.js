@@ -14,7 +14,7 @@ export default {
                 return new Promise(function (resolve, reject) {
                     if (typeof (Storage) !== "undefined") {
                         console.log('"this" in api::'+ this );
-                        resolve(JSON.parse(localStorage.getItem('name') || "{}"));
+                        resolve(JSON.parse(localStorage.getItem('dimentions') || "{}"));
                     } else {
                         reject(new Error('Sorry! No Web Storage support..'));
                     }
@@ -22,7 +22,7 @@ export default {
             },
             set: function (data) {
                 //app.$toastr.success('Changed');
-                localStorage.setItem('name', JSON.stringify(data));
+                localStorage.setItem('dimentions', JSON.stringify(data));
                 return data;
             },
         }

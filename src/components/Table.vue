@@ -1,6 +1,6 @@
 <template>
     <div class="loading" v-if="!loadingCompleted"></div>
-    <div v-else>
+    <div v-else @mouseup="onMouseUp">
 
         <TableInfo :commonRowsAmount="filteredData.length" :shownRowsAmount="items.length" :shared="shared" />
 
@@ -10,7 +10,7 @@
             </colgroup>
             <thead>
                 <template v-for="name in columnNames">
-                    <th :key="name" :name="name">{{name}}</th>
+                    <th :key="name" :name="name" @mousedown="onMouseDown" @mousemove="onMouseMove">{{name}}</th>
                 </template>
             </thead>
             <tbody v-show="items.length">
@@ -39,6 +39,7 @@
 <script>
     import TableInfo from '@/components/TableInfo.vue'
     import Api from '@/api'
+    import j from 'jquery'
 
     export default {
         name: 'Table',
@@ -177,13 +178,13 @@
             onMouseDown(e) {
                 this.currentTarget = e.target;
                 console.log(e.target);
-                //this.targetName = $(e.target).attr('name');
+                this.targetName = j(e.target).attr('name');
             },
             onMouseMove(e) {
                 if (e.which) {
                     let newWidth = e.pageX - this.currentTarget.offsetLeft;
                     if (newWidth > 20) {
-                       // $('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
+                        j('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
                         //_.debounce(function(){
                         //    console.log(123);
                         this.columnSizes[this.targetName] = newWidth;
@@ -205,7 +206,7 @@
                 }
                 var clientWindowHeight = document.documentElement.clientHeight;
                 var pageOffset = window.pageYOffset || document.documentElement.scrollTop;
-                //var tableOffset = $('table').offset().top + $('table').height();
+                var tableOffset = j('table').offset().top + j('table').height();
                 if (pageOffset == tableOffset) {
                    // console.log('stickyheader');
                 }
@@ -220,23 +221,12 @@
 </script>
 
 <style scoped>
-    table {
-        table-layout: fixed;
-    }
-
-    table td,
-    table th {
-
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
     th {
         position: relative;
         min-width: 10px;
 
     }
-
+    
     th:after {
         position: absolute;
         width: 3px;

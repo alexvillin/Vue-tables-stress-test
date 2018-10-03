@@ -8,6 +8,7 @@
     import Table from '@/components/TableBootstrapVue.vue'
     import Api from '@/api'
 
+    //TODO create utils module
     function formatDate(dateString) {
         return Vue.moment(dateString).format("DD.MM.YYYY hh:mm:ss");
     }
@@ -44,7 +45,7 @@
 
         },
         methods: {
-            //create model instance
+            //TODO: create table model instance
             prepareData() {
                 this.tableData.forEach(row => {
                     row.start = formatDate(row.start);
