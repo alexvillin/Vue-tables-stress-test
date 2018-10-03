@@ -19,7 +19,7 @@ npm install
 ```
 npm run serve
 ```
-Don't mind on eslint erorrs, just open page in browser (by default localhost:8080)
+Don't mind on eslint errors, just open page in browser (by default localhost:8080)
 
 -----------------------------------------
 ## Task requirements
