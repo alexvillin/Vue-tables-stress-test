@@ -1,18 +1,26 @@
 import Vue from 'vue'
+
+import App from '@/App.vue'
+import router from '@/router'
+import store from '@/store'
 import VueMoment from 'vue-moment'
 import moment from 'moment-timezone'
-Vue.use(VueMoment, {
-    moment,
-})
+import VueLodash from 'vue-lodash'
 import BootstrapVue from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+Vue.use(VueMoment, {
+    moment
+})
+Vue.use(VueLodash, {
+    name: 'lodash'
+})
 Vue.use(BootstrapVue);
-
-import App from './App.vue'
 
 Vue.config.productionTip = false
 
 new Vue({
-    render: h => h(App)
+    router,
+    render: h => h(App),
+    store,
 }).$mount('#app')

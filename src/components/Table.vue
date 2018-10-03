@@ -1,36 +1,9 @@
-<template lang="jade">
-    <b-container fluid>
-        <!--b-breadcrumbb-breadcrumb-item Data A
-    -->
-        <div class="btn">Items &nbsp;<span class="badge badge-light">{{filteredData.length}}</span></div>
-        <div class="btn">Shown &nbsp;<span class="badge badge-light">{{items.length}}</span></div>
-        <div v-show="loadMode !== 'all'" class="btn">Pages &nbsp; <span class="badge badge-light">{{totalPages}} </span></div>
-        <b-row>
-            <b-col sm="3">
-                <b-form-input v-model="search" placeholder="Search"> </b-form-input>
-            </b-col>
-            <b-col sm="3">
-                <b-form-select v-model="loadMode" @change="resetProperties">
-                    <option value="pagination">Pagination</option>
-                    <option value="lazyLoad">Lazyload</option>
-                    <option value="handle">Handle load</option>
-                    <option value="all">No limit</option>
-                </b-form-select>
-            </b-col>
-            <b-col sm="3" v-if="selectedRows.length">
-                <b-button v-if="showOnlySelected" title="Show all" @click="toggleSelected">
+<template>
+    <div class="loading" v-if="!loadingCompleted"></div>
+    <div v-else>
 
-                    Show all data
-                </b-button>
-                <b-button v-else title="Show only selected items" @click="toggleSelected">
+        <TableInfo :commonRowsAmount="filteredData.length" :shownRowsAmount="items.length" :shared="shared" />
 
-                    Show {{selectedRows.length}} selected rows
-                </b-button>
-            </b-col>
-            <b-col sm="3" v-show="loadMode !== 'all'">Rows per page
-                <b-form-input v-model="rowsPerPage" type="number"></b-form-input>
-            </b-col>
-        </b-row>
         <table :class="{resizable: resizable}" class="table table-striped">
             <colgroup>
                 <col v-for="name in columnNames" :key="name + 'Col'" :name="name" :style="{width: columnSizes[name] + 'px'}" />
@@ -58,23 +31,20 @@
             </tbody>
         </table>
         <p v-show="!items.length &amp;&amp; loadingCompleted">No data found </p>
-        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="filteredData.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
+        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="filteredData.length" v-model="page" :per-page="shared.rowsPerPage"></b-pagination>
         <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="filteredData.length == items.length">Load more</b-button>
-    </b-container>
+    </div>
 </template>
 
 <script>
-    import Vue from 'vue'
-    import VueLodash from 'vue-lodash'
-    import api from '../api.js'
-
-    Vue.use(VueLodash, {
-        name: 'lodash'
-    })
-
+    import TableInfo from '@/components/TableInfo.vue'
+    import Api from '@/api'
 
     export default {
         name: 'Table',
+        components: {
+            TableInfo
+        },
         props: {
             resizable: {
                 type: Boolean,
@@ -90,34 +60,39 @@
                 default: false,
             },
             pagination: Boolean,
-
+            perPage: {
+                type: Number,
+                default: 3
+            },
+            info: Boolean,
         },
+
         data: function() {
             return {
-                search: '',
                 page: 1,
                 loadMoreCounter: 1,
-                rowsPerPage: 3,
-                loadMode: 'all',
+                //                rowsPerPage: this.perPage,
                 currentTarget: {},
-                showOnlySelected: false,
                 selectedRows: [],
                 markers: this.$store.state.markers,
                 statuses: this.$store.state.statuses,
+                shared: {
+                    search: '',
+                    showOnlySelected: false,
+                    rowsPerPage: this.perPage
+                }
             }
         },
         created: function() {
             window.addEventListener('scroll', this.loadMoreCheck);
-
-            this.$store.dispatch('setColumnsDimentions',
-                api.localStorage.tableCellsWidth.get().then(r => {
-                    return r
-                })
-            );
+            //get data from loaal storage
+            Api.localStorage.tableCellsWidth.get().then(resp => {
+                this.$store.commit('setColumnsDimentions', resp);
+            })
         },
 
         updated: function() {
-            this.$nextTick(function() {
+            this.$nextTick(() => {
                 if (this.loadMode == 'lazyLoad') {
                     this.loadMoreCheck();
                 }
@@ -128,68 +103,75 @@
         },
 
         computed: {
+            loadMode() {
+                return this.pagination 
+                    ? 'pagination' 
+                    : this.$store.state.loadMode;
+            },
             //pagination
-            items: function() {
-                var vm = this;
+            items() {
+                let vm = this;
                 if (vm.loadMode == 'all') {
                     return vm.filteredData;
                 }
                 if (vm.loadMode == 'pagination') {
-                    var from = vm.rowsPerPage * (vm.page - 1),
-                        to = from + vm.rowsPerPage;
+                    var from = vm.shared.rowsPerPage * (vm.page - 1),
+                        to = from + vm.shared.rowsPerPage;
                     return vm.filteredData.slice(from, to);
                 }
-                return vm.filteredData.slice(0, vm.rowsPerPage * vm.loadMoreCounter);
+                return vm.filteredData.slice(0, vm.shared.rowsPerPage * vm.loadMoreCounter);
             },
-            totalPages: function() {
-                return Math.ceil(this.filteredData.length / this.rowsPerPage);
+            totalPages() {
+                return Math.ceil(this.filteredData.length / this.shared.rowsPerPage);
             },
             //selected helper
-            selected: function() {
-                var selected = {};
-                this.selectedRows.forEach(function(id) {
+            selected() {
+                let selected = {};
+                this.selectedRows.forEach(id => {
                     selected[id] = true;
                 })
+                this.$store.commit('setSelected', this.selectedRows);
                 return selected;
             },
             //for search and select filters
-            filteredData: function() {
-                var vm = this;
+            filteredData() {
+                let vm = this;
                 //create new array for dont touch reactive variable
                 let items = [...vm.tableData];
-                if (vm.search) {
-                    items = items.filter(function(row) {
-                        return this.lodash.values(row).join().indexOf(vm.search) !== -1;
+                if (vm.shared.search) {
+                    items = items.filter(row => {
+                        return vm.lodash.values(row).join().indexOf(vm.shared.search) !== -1;
                     })
                 }
-                if (vm.showOnlySelected) {
-                    items = items.filter(function(item) {
+                if (vm.shared.showOnlySelected) {
+                    items = items.filter(item => {
                         return vm.selectedRows.indexOf(item.id) !== -1;
                     })
                 }
                 return items;
             },
-            columnNames: function() {
-                var vm = this;
-                var fields = this.lodash.keys(vm.tableData[0]);
+            columnNames() {
+                let vm = this;
+                let fields = this.lodash.keys(vm.tableData[0]);
                 return this.tableColumns || fields;
             },
-            columnSizes: function() {
-                let columns = {...this.$store.state.columns};
-                this.columnNames.forEach(function(val) {
+            columnSizes() {
+                let columns = { ...this.$store.state.columns
+                };
+                this.columnNames.forEach(val => {
                     if (!columns[val]) {
                         columns[val] = 100;
                     }
                 })
                 this.$store.commit('setColumnsDimentions', columns);
-//                    console.log(this.$store.state.columns.id);
+                //                    console.log(this.$store.state.columns.id);
                 return this.$store.state.columns;
             },
 
 
         },
         methods: {
-            resetProperties: function() {
+            resetProperties() {
                 this.page = 1;
                 this.loadMoreCounter = 1;
             },
@@ -270,49 +252,10 @@
 
     }
 
-    .loading {
-        border: 10px solid #f3f3f3;
-        border-radius: 50%;
-        border-top: 10px solid #3498db;
-        width: 35px;
-        height: 35px;
-        -webkit-animation: spin 2s linear infinite;
-        animation: spin 2s linear infinite;
-        margin: 0 auto;
-    }
-
-    @-webkit-keyframes spin {
-        0% {
-            -webkit-transform: rotate(0deg);
-        }
-
-        100% {
-            -webkit-transform: rotate(360deg);
-        }
-    }
-
-    @keyframes spin {
-        0% {
-            -webkit-transform: rotate(0deg);
-            transform: rotate(0deg);
-        }
-
-        100% {
-            -webkit-transform: rotate(360deg);
-            transform: rotate(360deg);
-        }
-    }
-
     .circle_status {
         height: 10px;
         width: 10px;
         border-radius: 50%;
-    }
-
-
-
-    [v-cloak] {
-        display: none;
     }
 
     .selected {

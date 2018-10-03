@@ -20,6 +20,8 @@ export default new Vuex.Store({
                 'valuable',
                 'unique',
             ],
+        loadMode: 'pagination',
+        selected: [],
     },
     mutations: {
         setTable(state, payload) {
@@ -27,6 +29,12 @@ export default new Vuex.Store({
         },
         setColumnsDimentions(state, payload) {
             state.columns = payload;
+        },
+        setLoadMode(state, payload) {
+            state.loadMode = payload;
+        },
+        setSelected(state, payload) {
+            state.selected = [...payload];
         },
     },
     actions: {
@@ -36,6 +44,9 @@ export default new Vuex.Store({
         },
         setColumnsDimentions(context, payload) {
             context.commit('setColumnsDimentions', payload);
+        },
+        setLoadMode(context, payload) {
+            context.commit('setLoadMode', payload);
         },
     }
 })

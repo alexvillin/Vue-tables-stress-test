@@ -2,7 +2,6 @@ import Vue from 'vue'
 import "./plugins/axios.js"
 
 export default {
-
     table: {
         get: function (url) {
             return Vue.axios.get(url);
