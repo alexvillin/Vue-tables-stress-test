@@ -16,7 +16,7 @@
                 </b-form-select>
             </b-col>
             <b-col sm="3" v-show="loadMode !== 'all'">
-                <label for="rows">Rows per page:</label>
+<!--                <label for="rows">Rows per page:</label>-->
                 <b-form-input v-model="shared.rowsPerPage" id="rows" type="number" size="sm"></b-form-input>
             </b-col>
 
