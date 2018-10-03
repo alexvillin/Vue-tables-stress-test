@@ -10,6 +10,8 @@
 -------------------------------------------
 ## Project setup
 ```
+git clone https://github.com/alexvillin/Vue-tables-stress-test.git
+cd ./Vue-tables-stress-test
 npm install
 ```
 
@@ -17,8 +19,10 @@ npm install
 ```
 npm run serve
 ```
+Don't mind on eslint erorrs, just open page in browser (by default localhost:8080)
+
 -----------------------------------------
-##Task requirements
+## Task requirements
 
 
 - Create a project on VueJs with two pages.
