@@ -28,7 +28,7 @@
                         return new TableModel(val)
                     })
                     this.loadingCompleted = true;
-                    this.$store.commit('setTable', table);
+                    this.$store.commit('Table/setTable', table);
                 })
                 .catch(error => {
                     console.log('Error! Can`t get json data' + error.message);

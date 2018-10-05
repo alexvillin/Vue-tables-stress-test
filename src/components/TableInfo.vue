@@ -21,7 +21,7 @@
                 <b-form-input v-model="search" placeholder="Search" size="sm"> </b-form-input>
             </b-col>
             <b-col sm="3">
-                <b-form-select v-model="loadMode" size="sm">
+                <b-form-select :value="loadMode" size="sm" @input="setLoadMode">
                     <option value="pagination">Pagination</option>
                     <option value="lazyLoad">Lazyload</option>
                     <option value="handle">Handle load</option>
@@ -48,7 +48,7 @@
 <script>
     import Vue from 'vue'
     import VueLodash from 'vue-lodash'
-//    import { mapState, mapMutations } from 'vuex';
+    import * as Vuex from 'vuex';
     Vue.use(VueLodash, {
         name: 'lodash'
     })
@@ -64,14 +64,15 @@
                     return val > 2;
                 }
             },
-            data: {
-                type: Array,
-                default: () => []
-            }
+            vuexModulePath: {
+                type: String,
+                required: true,
+                //TODO: check for model exists
+                //validator: val => this.$store.state[val] 
+            },
         },
         data: function() {
             return {
-                loadMode: this.$store.state.loadMode,
                 showOnlySelected: false,
                 search: '',
                 rowsPerPage: this.perPage,
@@ -80,21 +81,15 @@
         initialTableState: null,
         created() {
             //create local non reactive variable
-            this.$options.initialTableState = this.lodash.cloneDeep(this.$store.state.tableData);
+            this.$options.initialTableState = this.lodash.cloneDeep(this.tableData);
         },
         computed: {
-            tableData(){
-                return this.$store.state.tableData || this.data;
-            },
             totalPages() {
                 return this.shownRowsAmount
                     ? Math.ceil(this.shownRowsAmount / this.rowsPerPage)
                     : false
             },
-            selectedRows() {
-                return this.$store.state.selected || [];
-            },
-             //for search and select filters
+            //for search and select filters
             filteredData() {
                 //create new array for dont touch reactive variable
                 let items = [...this.$options.initialTableState];
@@ -108,34 +103,29 @@
                         return this.selectedRows.indexOf(item.id) !== -1;
                     })
                 }
-                this.$store.commit('setTable', items);
-//                this.setTable(items);
+                this.setTable(items);
                 return items;
             },
             //use vuex state helper
-//            ...mapState(this.vuexModulePath, {
-//                tableData: state => state.tableData,
-//                selectedRows: state => state.selected
-//            })
+            //TODO pass variable instead 'Table'
+            ...Vuex.mapState('Table', {
+                tableData: state => state.tableData || [],
+                selectedRows: state => state.selected || [],
+                loadMode: state => state.loadMode || 'all'
+            })
+
         },
         methods: {
             toggleSelected() {
                 this.showOnlySelected = !this.showOnlySelected
             },
             //use vuex mutations helper
-//            ...mapMutations(this.vuexModulePath, [
-//                'setTable',
-//                'setLoadMode',
-            // mapMutations также поддерживает нагрузку:
-//                'incrementBy' // `this.incrementBy(amount)` будет вызывать `this.$store.commit('incrementBy', amount)`
-//            ])
+            ...Vuex.mapMutations('Table', [
+                'setTable',
+                //TODO debounce handler
+                'setLoadMode'
+            ])
         },
-        watch: {
-            loadMode(val) {
-                this.$store.commit('setLoadMode', val);
-//                this.setLoadMode(val)
-            },
-        }
     }
 
 </script>

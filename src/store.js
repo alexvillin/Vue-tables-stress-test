@@ -5,45 +5,13 @@ Vue.use(Vuex);
 
 //Use component names for Vuex modules
 const Table = {
-    state: {
-        tableData: {},
-        loadMode: 'pagination',
-        selected: [],
-        dimentions: {},
-    }
-}
-
-const TableBootstrapVue = {
-    state: {
-        tableData: {},
-        loadMode: 'pagination',
-        selected: [],
-        dimentions: {},
-
-    }
-}
-export default new Vuex.Store({
-    modules: {
-        Table,
-        TableBootstrapVue
-    },
+    namespaced: true,
     state: {
         tableData: [],
         loadMode: 'pagination',
         selected: [],
         dimentions: {},
-        markers: [
-                'green', 'green', 'yellow', 'red',
-                'grey', 'blue', 'orange',
-                'black', 'darkred', 'lightgrey',
-            ],
-        statuses: [
-                'not interesting',
-                'interesting',
-                'very interesting',
-                'valuable',
-                'unique',
-            ],
+        fields: {},
     },
     mutations: {
         setTable(state, payload) {
@@ -64,7 +32,6 @@ export default new Vuex.Store({
     actions: {
         setTable(context, payload) {
             context.commit('setTable', payload);
-
         },
         setColumnsDimentions(context, payload) {
             context.commit('setColumnsDimentions', payload);
@@ -72,6 +39,32 @@ export default new Vuex.Store({
         setLoadMode(context, payload) {
             context.commit('setLoadMode', payload);
         },
+    },
+
+}
+//TODO: create files for modules
+const TableBootstrapVue = {
+
+}
+
+export default new Vuex.Store({
+    modules: {
+        Table,
+        TableBootstrapVue
+    },
+    state: {
+        markers: [
+                'green', 'green', 'yellow', 'red',
+                'grey', 'blue', 'orange',
+                'black', 'darkred', 'lightgrey',
+            ],
+        statuses: [
+                'not interesting',
+                'interesting',
+                'very interesting',
+                'valuable',
+                'unique',
+            ],
     },
 
 })

@@ -2,7 +2,7 @@
     <div class="loading" v-if="!loadingCompleted"></div>
     <div v-else @mouseup="onMouseUp">
 
-        <TableInfo :data="rows" :shownRowsAmount="items.length" />
+        <TableInfo vuexModulePath="Table" :shownRowsAmount="items.length" />
 
         <table :class="{resizable: resizable}" class="table table-striped">
             <colgroup>
@@ -92,7 +92,7 @@
             window.addEventListener('scroll', this.loadMoreCheck);
             //get data from loaal storage
             Api.localStorage.tableCellsWidth.get().then(resp => {
-                this.$store.commit('setColumnsDimentions', resp);
+                this.$store.commit('Table/setColumnsDimentions', resp);
             })
         },
 
@@ -110,12 +110,12 @@
         computed: {
             rows() {
                 //Component can use data from storage or directly from parent scope
-                return this.tableData || this.$store.state.tableData;
+                return this.tableData || this.$store.state.Table.tableData;
             }, 
             loadMode() {
                 return this.pagination 
                     ? 'pagination' 
-                    : this.$store.state.loadMode;
+                    : this.$store.state.Table.loadMode;
             },
             //pagination processing
             items() {
@@ -138,7 +138,7 @@
                 this.selectedRows.forEach(id => {
                     selected[id] = true;
                 })
-                this.$store.commit('setSelected', this.selectedRows);
+                this.$store.commit('Table/setSelected', this.selectedRows);
                 return selected;
             },
 
@@ -155,7 +155,7 @@
                         columns[val] = 100;
                     }
                 })
-                this.$store.commit('setColumnsDimentions', columns);
+                this.$store.commit('Table/setColumnsDimentions', columns);
                 return columns;
             },
 
