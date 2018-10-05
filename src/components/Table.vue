@@ -2,7 +2,7 @@
     <div class="loading" v-if="!loadingCompleted"></div>
     <div v-else @mouseup="onMouseUp">
 
-        <TableInfo :commonRowsAmount="filteredData.length" :shownRowsAmount="items.length" :shared="shared" />
+        <TableInfo :data="rows" :shownRowsAmount="items.length" />
 
         <table :class="{resizable: resizable}" class="table table-striped">
             <colgroup>
@@ -31,14 +31,20 @@
             </tbody>
         </table>
         <p v-show="!items.length &amp;&amp; loadingCompleted">No data found </p>
-        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="filteredData.length" v-model="page" :per-page="shared.rowsPerPage"></b-pagination>
-        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="filteredData.length == items.length">Load more</b-button>
+        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="rows.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
+        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="rows.length == items.length">Load more</b-button>
     </div>
 </template>
 
 <script>
+    import Vue from 'vue'
     import TableInfo from '@/components/TableInfo.vue'
+    import VueLodash from 'vue-lodash'
+    Vue.use(VueLodash, {
+        name: 'lodash'
+    })
     import Api from '@/api'
+    //TODO integrate jquery correctly
     import j from 'jquery'
 
     export default {
@@ -53,9 +59,9 @@
             },
             tableData: {
                 type: Array,
-                required: true
+                //default: () => []
             },
-            tableColumns: Array,
+            fields: Array,
             loadingCompleted: {
                 type: Boolean,
                 default: false,
@@ -65,7 +71,10 @@
                 type: Number,
                 default: 3
             },
-            info: Boolean, //show tableInfo
+            info: {
+                type: Boolean,
+                default: true
+            }
         },
 
         data: function() {
@@ -74,13 +83,9 @@
                 loadMoreCounter: 1,
                 currentTarget: {},
                 selectedRows: [],
-                markers: this.$store.state.markers,
-                statuses: this.$store.state.statuses,
-                shared: {
-                    search: '',
-                    showOnlySelected: false,
-                    rowsPerPage: this.perPage
-                }
+                markers: this.$store.state.markers || [],
+                statuses: this.$store.state.statuses || [],
+                rowsPerPage: this.perPage,
             }
         },
         created: function() {
@@ -103,26 +108,29 @@
         },
 
         computed: {
+            rows() {
+                //Component can use data from storage or directly from parent scope
+                return this.tableData || this.$store.state.tableData;
+            }, 
             loadMode() {
                 return this.pagination 
                     ? 'pagination' 
                     : this.$store.state.loadMode;
             },
-            //pagination
+            //pagination processing
             items() {
-                let vm = this;
-                if (vm.loadMode == 'all') {
-                    return vm.filteredData;
+                if (this.loadMode == 'all') {
+                    return this.rows;
                 }
-                if (vm.loadMode == 'pagination') {
-                    var from = vm.shared.rowsPerPage * (vm.page - 1),
-                        to = from + vm.shared.rowsPerPage;
-                    return vm.filteredData.slice(from, to);
+                if (this.loadMode == 'pagination') {
+                    var from = this.rowsPerPage * (this.page - 1),
+                        to = from + this.rowsPerPage;
+                    return this.rows.slice(from, to);
                 }
-                return vm.filteredData.slice(0, vm.shared.rowsPerPage * vm.loadMoreCounter);
+                return this.rows.slice(0, this.rowsPerPage * this.loadMoreCounter);
             },
             totalPages() {
-                return Math.ceil(this.filteredData.length / this.shared.rowsPerPage);
+                return Math.ceil(this.rows.length / this.rowsPerPage);
             },
             //selected helper
             selected() {
@@ -133,28 +141,12 @@
                 this.$store.commit('setSelected', this.selectedRows);
                 return selected;
             },
-            //for search and select filters
-            filteredData() {
-                let vm = this;
-                //create new array for dont touch reactive variable
-                let items = [...vm.tableData];
-                if (vm.shared.search) {
-                    items = items.filter(row => {
-                        return vm.lodash.values(row).join().indexOf(vm.shared.search) !== -1;
-                    })
-                }
-                if (vm.shared.showOnlySelected) {
-                    items = items.filter(item => {
-                        return vm.selectedRows.indexOf(item.id) !== -1;
-                    })
-                }
-                return items;
-            },
+
             columnNames() {
-                let vm = this;
-                let fields = this.lodash.keys(vm.tableData[0]);
-                return this.tableColumns || fields;
+                let fields = this.lodash.keys(this.rows[0]);
+                return this.fields || fields;
             },
+            //TODO props from component
             columnSizes() {
                 let columns = { ...this.$store.state.columns
                 };
@@ -177,7 +169,7 @@
 
             onMouseDown(e) {
                 this.currentTarget = e.target;
-                console.log(e.target);
+                console.log(e);
                 this.targetName = j(e.target).attr('name');
             },
             onMouseMove(e) {
@@ -185,6 +177,7 @@
                     let newWidth = e.pageX - this.currentTarget.offsetLeft;
                     if (newWidth > 20) {
                         j('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
+                        //TODO dragging processing
                         //_.debounce(function(){
                         //    console.log(123);
                         this.columnSizes[this.targetName] = newWidth;
@@ -196,9 +189,6 @@
             onMouseUp() {
                 this.currentTarget = {}
                 Api.localStorage.tableCellsWidth.set(this.columnSizes);
-            },
-            toggleSelected() {
-                this.shared.showOnlySelected = !this.shared.showOnlySelected
             },
             loadMoreCheck() {
                 if (this.loadMode !== 'lazyLoad') {

@@ -10,19 +10,18 @@ export default {
     localStorage: {
         tableCellsWidth: {
             name: 'tableCellsWidth',
-            get: function () {
-                return new Promise(function (resolve, reject) {
+            get() {
+                return new Promise((resolve, reject) => {
                     if (typeof (Storage) !== "undefined") {
-                        console.log('"this" in api::'+ this );
-                        resolve(JSON.parse(localStorage.getItem('dimentions') || "{}"));
+                        resolve(JSON.parse(localStorage.getItem(this.name) || "{}"));
                     } else {
                         reject(new Error('Sorry! No Web Storage support..'));
                     }
                 })
             },
-            set: function (data) {
-                //app.$toastr.success('Changed');
-                localStorage.setItem('dimentions', JSON.stringify(data));
+            set(data) {
+                //TODO app.$toastr.success('Changed');
+                localStorage.setItem(this.name, JSON.stringify(data));
                 return data;
             },
         }

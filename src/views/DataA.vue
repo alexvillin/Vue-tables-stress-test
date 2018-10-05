@@ -1,17 +1,12 @@
 <template>
-    <Table :tableData="tableData" resizable :loading-completed="loadingCompleted" />
+    <Table resizable :loading-completed="loadingCompleted" />
 </template>
 
 <script>
     // @ is an alias to /src
-    import Vue from 'vue'
     import Table from '@/components/Table.vue'
+    import TableModel from '@/models/Table'
     import Api from '@/api'
-
-    //TODO create utils module
-    function formatDate(dateString) {
-        return Vue.moment(dateString).format("DD.MM.YYYY hh:mm:ss");
-    }
 
     export default {
         name: 'DataA',
@@ -22,40 +17,25 @@
         data: function() {
             return {
                 headersTable: [""],
-                tableData: [],
                 loadingCompleted: false,
             }
         },
 
         created: function() {
-            var vm = this;
             Api.table.get('//localhost:8080/dataA.json')
                 .then(response => {
-                    vm.tableData = response.data;
-                    vm.prepareData();
-                    vm.loadingCompleted = true;
-                    vm.$store.commit('setTable', {
-                        data: vm.tableData
-                    });
+                    let table = response.data.map(val => {
+                        return new TableModel(val)
+                    })
+                    this.loadingCompleted = true;
+                    this.$store.commit('setTable', table);
                 })
                 .catch(error => {
                     console.log('Error! Can`t get json data' + error.message);
                 })
 
         },
-        methods: {
-            //TODO: create table model instance
-            prepareData() {
-                this.tableData.forEach(row => {
-                    row.start = formatDate(row.start);
-                    if (row.start !== row.finish) {
-                        row.start += "-" + formatDate(row.finish);
-                    }
-                    row.createdon = formatDate(row.createdon);
-                    delete row.finish;
-                })
-            },
-        },
+
     }
 
 </script>

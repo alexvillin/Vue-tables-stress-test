@@ -3,11 +3,35 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+//Use component names for Vuex modules
+const Table = {
     state: {
-        //count: 0,
-        table: {},
-        columns: {},
+        tableData: {},
+        loadMode: 'pagination',
+        selected: [],
+        dimentions: {},
+    }
+}
+
+const TableBootstrapVue = {
+    state: {
+        tableData: {},
+        loadMode: 'pagination',
+        selected: [],
+        dimentions: {},
+
+    }
+}
+export default new Vuex.Store({
+    modules: {
+        Table,
+        TableBootstrapVue
+    },
+    state: {
+        tableData: [],
+        loadMode: 'pagination',
+        selected: [],
+        dimentions: {},
         markers: [
                 'green', 'green', 'yellow', 'red',
                 'grey', 'blue', 'orange',
@@ -20,15 +44,15 @@ export default new Vuex.Store({
                 'valuable',
                 'unique',
             ],
-        loadMode: 'pagination',
-        selected: [],
     },
     mutations: {
         setTable(state, payload) {
-            state.table = payload.data;
+//            state.tableDataBefore = state.tableData;
+//            Vue.set(state, 'tableDataBefore', state.tableData)
+            state.tableData = payload;
         },
         setColumnsDimentions(state, payload) {
-            state.columns = payload;
+            state.dimentions = payload;
         },
         setLoadMode(state, payload) {
             state.loadMode = payload;
@@ -48,5 +72,6 @@ export default new Vuex.Store({
         setLoadMode(context, payload) {
             context.commit('setLoadMode', payload);
         },
-    }
+    },
+
 })
