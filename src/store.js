@@ -10,7 +10,7 @@ const Table = {
         tableData: [],
         loadMode: 'pagination',
         selected: [],
-        dimentions: {},
+        columns: {},
         fields: {},
     },
     mutations: {
@@ -20,7 +20,7 @@ const Table = {
             state.tableData = payload;
         },
         setColumnsDimentions(state, payload) {
-            state.dimentions = payload;
+            state.columns = payload;
         },
         setLoadMode(state, payload) {
             state.loadMode = payload;

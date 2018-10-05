@@ -148,7 +148,7 @@
             },
             //TODO props from component
             columnSizes() {
-                let columns = { ...this.$store.state.columns
+                let columns = { ...this.$store.state.Table.columns
                 };
                 this.columnNames.forEach(val => {
                     if (!columns[val]) {
@@ -181,7 +181,7 @@
                         //_.debounce(function(){
                         //    console.log(123);
                         this.columnSizes[this.targetName] = newWidth;
-                        this.$store.commit('setColumnsDimentions', this.columnSizes);
+                        this.$store.commit('Table/setColumnsDimentions', this.columnSizes);
                         //}, 1000)
                     }
                 }
