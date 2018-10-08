@@ -64,7 +64,7 @@
                     return val > 2;
                 }
             },
-            vuexModulePath: {
+            vuexModel: {
                 type: String,
                 required: true,
                 //TODO: check for model exists
@@ -106,25 +106,28 @@
                 this.setTable(items);
                 return items;
             },
-            //use vuex state helper
-            //TODO pass variable instead 'Table'
-            ...Vuex.mapState('Table', {
-                tableData: state => state.tableData || [],
-                selectedRows: state => state.selected || [],
-                loadMode: state => state.loadMode || 'all'
-            })
+            tableData() {
+                return this.$store.state[this.vuexModel].tableData || []
+            },
+            selectedRows(){
+                return this.$store.state[this.vuexModel].selected || []
+            },
+            loadMode() {
+                return this.$store.state[this.vuexModel].loadMode || 'all'
+            }
 
         },
         methods: {
             toggleSelected() {
                 this.showOnlySelected = !this.showOnlySelected
             },
-            //use vuex mutations helper
-            ...Vuex.mapMutations('Table', [
-                'setTable',
-                //TODO debounce handler
-                'setLoadMode'
-            ])
+            setTable(val) {
+                this.$store.commit(`${this.vuexModel}/setTable`, val);
+            },
+            //TODO debounce handler
+            setLoadMode(val) {
+                this.$store.commit(`${this.vuexModel}/setLoadMode`, val);
+            },
         },
     }
 

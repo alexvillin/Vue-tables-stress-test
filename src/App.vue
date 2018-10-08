@@ -1,5 +1,7 @@
 <template>
     <div id="app">
+<!--        <notifications position="bottom right" />-->
+        <notifications group="api"/>
         <b-navbar toggleable="md" v-cloak type="dark" variant="info">
             <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
             <b-navbar-brand>Tables stress test</b-navbar-brand>

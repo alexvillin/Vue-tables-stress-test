@@ -10,7 +10,7 @@ const Table = {
         tableData: [],
         loadMode: 'pagination',
         selected: [],
-        columns: {},
+        columnsSizes: {},
         fields: {},
     },
     mutations: {
@@ -19,8 +19,8 @@ const Table = {
 //            Vue.set(state, 'tableDataBefore', state.tableData)
             state.tableData = payload;
         },
-        setColumnsDimentions(state, payload) {
-            state.columns = payload;
+        setColumnsSizes(state, payload) {
+            state.columnsSizes = payload;
         },
         setLoadMode(state, payload) {
             state.loadMode = payload;
@@ -33,8 +33,8 @@ const Table = {
         setTable(context, payload) {
             context.commit('setTable', payload);
         },
-        setColumnsDimentions(context, payload) {
-            context.commit('setColumnsDimentions', payload);
+        setColumnsSizes(context, payload) {
+            context.commit('setColumnsSizes', payload);
         },
         setLoadMode(context, payload) {
             context.commit('setLoadMode', payload);

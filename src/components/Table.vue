@@ -2,7 +2,7 @@
     <div class="loading" v-if="!loadingCompleted"></div>
     <div v-else @mouseup="onMouseUp">
 
-        <TableInfo vuexModulePath="Table" :shownRowsAmount="items.length" />
+        <TableInfo vuexModel="Table" :shownRowsAmount="items.length" />
 
         <table :class="{resizable: resizable}" class="table table-striped">
             <colgroup>
@@ -46,6 +46,9 @@
     import Api from '@/api'
     //TODO integrate jquery correctly
     import j from 'jquery'
+    import { createNamespacedHelpers } from 'vuex';
+
+    const { mapMutations } = createNamespacedHelpers('Table');
 
     export default {
         name: 'Table',
@@ -92,7 +95,7 @@
             window.addEventListener('scroll', this.loadMoreCheck);
             //get data from loaal storage
             Api.localStorage.tableCellsWidth.get().then(resp => {
-                this.$store.commit('Table/setColumnsDimentions', resp);
+                this.setColumnsSizes(resp);
             })
         },
 
@@ -133,12 +136,13 @@
                 return Math.ceil(this.rows.length / this.rowsPerPage);
             },
             //selected helper
+            //TODO select all checkbox
             selected() {
                 let selected = {};
                 this.selectedRows.forEach(id => {
                     selected[id] = true;
                 })
-                this.$store.commit('Table/setSelected', this.selectedRows);
+                this.setSelected(this.selectedRows);
                 return selected;
             },
 
@@ -148,18 +152,16 @@
             },
             //TODO props from component
             columnSizes() {
-                let columns = { ...this.$store.state.Table.columns
+                let columns = { ...this.$store.state.Table.columnsSizes
                 };
                 this.columnNames.forEach(val => {
                     if (!columns[val]) {
                         columns[val] = 100;
                     }
                 })
-                this.$store.commit('Table/setColumnsDimentions', columns);
+                this.setColumnsSizes(columns);
                 return columns;
             },
-
-
         },
         methods: {
             resetProperties() {
@@ -181,14 +183,14 @@
                         //_.debounce(function(){
                         //    console.log(123);
                         this.columnSizes[this.targetName] = newWidth;
-                        this.$store.commit('Table/setColumnsDimentions', this.columnSizes);
+                        this.setColumnsSizes(this.columnSizes);
+                        Api.localStorage.tableCellsWidth.set(this.columnSizes);
                         //}, 1000)
                     }
                 }
             },
             onMouseUp() {
                 this.currentTarget = {}
-                Api.localStorage.tableCellsWidth.set(this.columnSizes);
             },
             loadMoreCheck() {
                 if (this.loadMode !== 'lazyLoad') {
@@ -205,6 +207,10 @@
                     this.loadMoreCounter++;
                 }
             },
+            ...mapMutations([
+                'setSelected',
+                'setColumnsSizes',
+            ]),
         },
     }
 
