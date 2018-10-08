@@ -33,11 +33,11 @@
                 <b-form-input v-model="rowsPerPage" id="rows" type="number" size="sm"></b-form-input>
             </b-col>
 
-            <b-col sm="2" v-if="selectedRows.length">
+            <b-col sm="2" >
                 <b-button v-if="showOnlySelected" title="Show all" @click="toggleSelected" size="sm">
                     Show all data
                 </b-button>
-                <b-button v-else title="Show only selected items" @click="toggleSelected" size="sm">
+                <b-button v-if="selectedRows.length && !showOnlySelected" title="Show only selected items" @click="toggleSelected" size="sm">
                     Show {{selectedRows.length}} selected rows
                 </b-button>
             </b-col>

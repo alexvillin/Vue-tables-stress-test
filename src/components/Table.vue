@@ -187,18 +187,17 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
                     let newWidth = e.pageX - this.currentTarget.offsetLeft;
                     if (newWidth > 20) {
                         j('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
-                        //TODO dragging processing
-                        //_.debounce(function(){
-                        //    console.log(123);
+                        //TODO debounce processing
                         this.columnSizes[this.targetName] = newWidth;
-                        this.setColumnsSizes(this.columnSizes);
-                        Api.localStorage.tableCellsWidth.set(this.columnSizes);
-                        //}, 1000)
                     }
                 }
             },
             onMouseUp() {
-                this.currentTarget = {}
+                if(this.currentTarget.tagName){
+                    this.currentTarget = {}
+                    this.setColumnsSizes(this.columnSizes);
+                    Api.localStorage.tableCellsWidth.set(this.columnSizes)
+                }
             },
             loadMoreCheck() {
                 if (this.loadMode !== 'lazyLoad') {
