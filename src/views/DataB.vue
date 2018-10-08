@@ -26,12 +26,11 @@
                         return new TableModel(val)
                     })
                     this.loadingCompleted = true;
-                    this.$store.commit('setTable', table);
+                    this.$store.commit('TableBootstrapVue/setTable', table);
                 })
                 .catch(error => {
                     console.log('Error! Can`t get json data' + error.message);
                 })
-
         },
        
     }

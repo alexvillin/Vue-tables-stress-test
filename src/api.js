@@ -6,7 +6,15 @@ Vue.use(Notifications)
 export default {
     table: {
         get: function (url) {
-            return Vue.axios.get(url);
+            return Vue.axios.get(url)
+                .catch((e) => {
+                    Vue.notify({
+                        group: 'api',
+                        type: 'error',
+                        title: 'Error',
+                        text: e.message
+                    })
+                });
         }
     },
     localStorage: {
@@ -28,15 +36,21 @@ export default {
                 })
             },
             set(data) {
-                Vue.notify({
-                    group: 'api',
-                    type: 'success',
-                    title: 'Local Storage',
-                    text: 'Table dimentions saved!'
-                })
-                localStorage.setItem(this.name, JSON.stringify(data));
-                return data;
+                try {
+                    localStorage.setItem(this.name, JSON.stringify(data));
+                    Vue.notify({
+                        group: 'api',
+                        type: 'success',
+                        title: 'Local Storage',
+                        text: 'Table dimentions saved!'
+                    })
+                    return data;
+                } catch (error) {
+                    console.error(error);
+                    return false;
+                }
             },
+            //TODO add remove item
         }
     },
 

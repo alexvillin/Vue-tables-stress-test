@@ -1,10 +1,4 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-
-Vue.use(Vuex);
-
-//Use component names for Vuex modules
-const Table = {
+ const Table = {
     namespaced: true,
     state: {
         tableData: [],
@@ -42,29 +36,4 @@ const Table = {
     },
 
 }
-//TODO: create files for modules
-const TableBootstrapVue = {
-
-}
-
-export default new Vuex.Store({
-    modules: {
-        Table,
-        TableBootstrapVue
-    },
-    state: {
-        markers: [
-                'green', 'green', 'yellow', 'red',
-                'grey', 'blue', 'orange',
-                'black', 'darkred', 'lightgrey',
-            ],
-        statuses: [
-                'not interesting',
-                'interesting',
-                'very interesting',
-                'valuable',
-                'unique',
-            ],
-    },
-
-})
+export default Table;

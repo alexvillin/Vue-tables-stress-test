@@ -16,7 +16,14 @@
 
         data: function() {
             return {
-                headersTable: [""],
+                //can pass custom fields info component like in Bootstrap Vue component
+                fields: [{
+//                    key: 'id',
+//                    label: '#',
+//                    sortable: true,
+//                    // Variant applies to the whole column, including the header and footer
+//                    variant: 'danger'
+                }],
                 loadingCompleted: false,
             }
         },

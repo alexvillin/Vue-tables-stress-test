@@ -10,7 +10,14 @@
             </colgroup>
             <thead>
                 <template v-for="name in columnNames">
-                    <th :key="name" :name="name" @mousedown="onMouseDown" @mousemove="onMouseMove">{{name}}</th>
+                    <th :key="name" :name="name" @mousedown="onMouseDown" @mousemove="onMouseMove">
+<!--
+                        <template v-if="name == 'id'">
+                            <input type="checkbox" name="selectAll" />
+                        </template>
+-->
+                        {{name}}
+                    </th>
                 </template>
             </thead>
             <tbody v-show="items.length">
@@ -48,10 +55,11 @@
     import j from 'jquery'
     import { createNamespacedHelpers } from 'vuex';
 
-    const { mapMutations } = createNamespacedHelpers('Table');
+const VuexModule = 'Table';
+const { mapMutations } = createNamespacedHelpers(VuexModule);
 
     export default {
-        name: 'Table',
+        name: VuexModule,
         components: {
             TableInfo
         },
@@ -113,12 +121,12 @@
         computed: {
             rows() {
                 //Component can use data from storage or directly from parent scope
-                return this.tableData || this.$store.state.Table.tableData;
+                return this.tableData || this.$store.state[VuexModule].tableData;
             }, 
             loadMode() {
                 return this.pagination 
                     ? 'pagination' 
-                    : this.$store.state.Table.loadMode;
+                    : this.$store.state[VuexModule].loadMode;
             },
             //pagination processing
             items() {
@@ -152,7 +160,7 @@
             },
             //TODO props from component
             columnSizes() {
-                let columns = { ...this.$store.state.Table.columnsSizes
+                let columns = { ...this.$store.state[VuexModule].columnsSizes
                 };
                 this.columnNames.forEach(val => {
                     if (!columns[val]) {
@@ -196,9 +204,9 @@
                 if (this.loadMode !== 'lazyLoad') {
                     return;
                 }
-                var clientWindowHeight = document.documentElement.clientHeight;
-                var pageOffset = window.pageYOffset || document.documentElement.scrollTop;
-                var tableOffset = j('table').offset().top + j('table').height();
+                let clientWindowHeight = document.documentElement.clientHeight;
+                let pageOffset = window.pageYOffset || document.documentElement.scrollTop;
+                let tableOffset = j('table').offset().top + j('table').height();
                 if (pageOffset == tableOffset) {
                    // console.log('stickyheader');
                 }
@@ -216,25 +224,24 @@
 
 </script>
 
-<style scoped>
+<style scoped lang="scss" rel="stylesheet/scss">
     th {
         position: relative;
         min-width: 10px;
 
-    }
-    
-    th:after {
-        position: absolute;
-        width: 3px;
-        height: 100%;
-        top: 0;
-        right: 0px;
-        content: '';
-        z-index: 100;
-        cursor: col-resize;
-        background-color: lightgray;
-        border-radius: 50%;
+        &:after {
+            position: absolute;
+            width: 3px;
+            height: 100%;
+            top: 0;
+            right: 0px;
+            content: '';
+            z-index: 100;
+            cursor: col-resize;
+            background-color: lightgray;
+            border-radius: 50%;
 
+        }
     }
 
     .circle_status {

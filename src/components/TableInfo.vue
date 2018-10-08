@@ -48,7 +48,7 @@
 <script>
     import Vue from 'vue'
     import VueLodash from 'vue-lodash'
-    import * as Vuex from 'vuex';
+//    import * as Vuex from vuex';
     Vue.use(VueLodash, {
         name: 'lodash'
     })

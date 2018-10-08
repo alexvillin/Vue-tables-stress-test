@@ -1,9 +1,9 @@
+<!--    TODO resizable and lazyloading,sorting -->
 <template>
-
     <div v-if="!loadingCompleted" class="loading"></div>
     <div v-else v-cloak keep-alive variant="dark">
 
-        <TableInfo :commonRowsAmount="filteredData.length" :shownRowsAmount="items.length" :shared="shared" />
+        <TableInfo vuexModel="TableBootstrapVue" :shownRowsAmount="items.length" />
 
         <b-table striped hover :items="items" head-variant="light">
             <template slot="id" slot-scope="data">
@@ -16,30 +16,34 @@
                 </b-form-select>
             </template>
         </b-table>
-        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" size="md" :total-rows="filteredData.length" v-model="page" :per-page="shared.rowsPerPage"></b-pagination>
-        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="filteredData.length == items.length">Load more</b-button>
+        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" size="md" :total-rows="items.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
+        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="items.length == rows.length">Load more</b-button>
     </div>
 </template>
 
 <script>
     import TableInfo from '@/components/TableInfo.vue'
     import Api from '@/api'
+    import { createNamespacedHelpers } from 'vuex';
+
+    const VuexModule = 'TableBootstrapVue';
+    const { mapMutations } = createNamespacedHelpers(VuexModule);
 
     export default {
-        name: 'TableBootstrapVue',
+        name: VuexModule,
         components: {
             TableInfo
         },
         props: {
-            resizable: {
+              resizable: {
                 type: Boolean,
                 default: false
             },
             tableData: {
                 type: Array,
-                required: true
+                //default: () => []
             },
-            tableColumns: Array,
+            fields: Array,
             loadingCompleted: {
                 type: Boolean,
                 default: false,
@@ -47,56 +51,64 @@
             pagination: Boolean,
             perPage: {
                 type: Number,
-                default: 3,
+                default: 3
+            },
+            info: {
+                type: Boolean,
+                default: true
             }
         },
+
         data: function() {
             return {
                 page: 1,
+                loadMoreCounter: 1,
+                currentTarget: {},
                 selectedRows: [],
-                markers: this.$store.state.markers,
-                statuses: this.$store.state.statuses,
-                shared: {
-                    search: '',
-                    showOnlySelected: false,
-                    rowsPerPage: this.perPage
-                }
+                markers: this.$store.state.markers || [],
+                statuses: this.$store.state.statuses || [],
+                rowsPerPage: this.perPage,
             }
         },
         created: function() {
+//            window.addEventListener('scroll', this.loadMoreCheck);
+            //get data from loaal storage
             Api.localStorage.tableCellsWidth.get().then(resp => {
-                this.$store.dispatch('setColumnsDimentions', resp);
+                this.setColumnsSizes(resp);
             })
         },
 
         updated: function() {
-            this.$nextTick(function() {
+            this.$nextTick(() => {
 
             })
         },
 
 
         computed: {
+           rows() {
+                //Component can use data from storage or directly from parent scope
+                return this.tableData || this.$store.state[VuexModule].tableData;
+            }, 
             loadMode() {
                 return this.pagination 
                     ? 'pagination' 
-                    : this.$store.state.loadMode;
+                    : this.$store.state[VuexModule].loadMode;
             },
-            //pagination
+            //pagination processing
             items() {
-                let vm = this;
-                if (vm.loadMode == 'all') {
-                    return vm.filteredData;
+                if (this.loadMode == 'all') {
+                    return this.rows;
                 }
-                if (vm.loadMode == 'pagination') {
-                    var from = vm.shared.rowsPerPage * (vm.page - 1),
-                        to = from + vm.shared.rowsPerPage;
-                    return vm.filteredData.slice(from, to);
+                if (this.loadMode == 'pagination') {
+                    var from = this.rowsPerPage * (this.page - 1),
+                        to = from + this.rowsPerPage;
+                    return this.rows.slice(from, to);
                 }
-                return vm.filteredData.slice(0, vm.shared.rowsPerPage * vm.loadMoreCounter);
+                return this.rows.slice(0, this.rowsPerPage * this.loadMoreCounter);
             },
             totalPages() {
-                return Math.ceil(this.filteredData.length / this.shared.rowsPerPage);
+                return Math.ceil(this.rows.length / this.rowsPerPage);
             },
             //selected helper
             selected() {
@@ -104,63 +116,36 @@
                 this.selectedRows.forEach(id => {
                     selected[id] = true;
                 })
-                this.$store.commit('setSelected', this.selectedRows);
+                this.setSelected(this.selectedRows);
                 return selected;
-            },
-            //for search and select filters
-            filteredData() {
-                let vm = this;
-                //create new array for dont touch reactive variable
-                let items = [...vm.tableData];
-                if (vm.shared.search) {
-                    items = items.filter(row => {
-                        return vm.lodash.values(row).join().indexOf(vm.search) !== -1;
-                    })
-                }
-                if (vm.shared.showOnlySelected) {
-                    items = items.filter(item => {
-                        return vm.selectedRows.indexOf(item.id) !== -1;
-                    })
-                }
-                return items;
-            },
-            columnSizes() {
-                let columns = { ...this.$store.state.columns };
-                this.lodash.keys(this.tableData[0]).forEach(val => {
-                    if (!columns[val]) {
-                        columns[val] = 100;
-                    }
-                })
-                this.$store.commit('setColumnsDimentions', columns);
-                return columns;
             },
 
         },
         methods: {
             resetProperties() {
                 this.page = 1;
+                this.loadMoreCounter = 1;
             },
+            ...mapMutations([
+                'setSelected',
+                'setColumnsSizes',
+            ]),
         },
     }
 
 </script>
 
-<style scoped>
+<style scoped lang="scss" rel="stylesheet/scss">
     table {
         table-layout: fixed;
+    
+        th {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+            min-width: 10px;
+        }
     }
-
-    table td,
-    table th {
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    th {
-        position: relative;
-        min-width: 10px;
-    }
-
 
     .circle_status {
         height: 10px;
