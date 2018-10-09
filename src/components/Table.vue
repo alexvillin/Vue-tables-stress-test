@@ -187,7 +187,6 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
                     let newWidth = e.pageX - this.currentTarget.offsetLeft;
                     if (newWidth > 20) {
                         j('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
-                        //TODO debounce processing
                         this.columnSizes[this.targetName] = newWidth;
                     }
                 }
@@ -239,7 +238,6 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
             cursor: col-resize;
             background-color: lightgray;
             border-radius: 50%;
-
         }
     }
 

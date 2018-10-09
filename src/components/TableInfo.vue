@@ -1,14 +1,19 @@
 <!--
-    TableInfo component
+    TableInfo component 
+
     Params: 
-        module: required
-        commonRowsAmount: optional
-        shownRowsAmount: optinal
-        perPage: optional, default: 3
-    Vuex: 
-        tableData: Vuex source
-        loadMode: Vuex source
-        selectedRows: Vuex source
+        vuexModel: String, required
+        perPage: Number, optional, default: 3
+        shownRowsAmount: Number, optional
+
+    Vuex state props required: 
+        tableData: []
+        loadMode: ''
+        selected: []
+
+    Vuex mutations required:
+        setTable,
+        setLoadMode,
   -->
 
 <template>
@@ -34,6 +39,9 @@
             </b-col>
 
             <b-col sm="2" >
+               <b-button v-if="showOnlySelected" title="Delete items" @click="deleteSelected" size="sm">
+                    Del
+                </b-button>
                 <b-button v-if="showOnlySelected" title="Show all" @click="toggleSelected" size="sm">
                     Show all data
                 </b-button>
@@ -48,7 +56,6 @@
 <script>
     import Vue from 'vue'
     import VueLodash from 'vue-lodash'
-//    import * as Vuex from vuex';
     Vue.use(VueLodash, {
         name: 'lodash'
     })
@@ -121,10 +128,12 @@
             toggleSelected() {
                 this.showOnlySelected = !this.showOnlySelected
             },
+            deleteSelected(){
+                //TODO only with API in real project
+            },
             setTable(val) {
                 this.$store.commit(`${this.vuexModel}/setTable`, val);
             },
-            //TODO debounce handler
             setLoadMode(val) {
                 this.$store.commit(`${this.vuexModel}/setLoadMode`, val);
             },
