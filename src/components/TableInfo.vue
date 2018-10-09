@@ -23,7 +23,7 @@
 <!--        <div v-show="loadMode !== 'all' && totalPages" class="btn">Pages <span class="badge badge-light mr-1">{{totalPages}} </span></div>-->
         <b-row>
             <b-col sm="3">
-                <b-form-input v-model="search" placeholder="Search" size="sm"> </b-form-input>
+                <b-form-input v-model.lazy="search" placeholder="Search" size="sm"> </b-form-input>
             </b-col>
             <b-col sm="3">
                 <b-form-select :value="loadMode" size="sm" @input="setLoadMode">

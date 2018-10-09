@@ -4,7 +4,7 @@
 
         <TableInfo vuexModel="Table" :shownRowsAmount="items.length" />
 
-        <table :class="{resizable: resizable}" class="table table-striped">
+        <table :class="{resizable: resizable}" class="table table-striped" ref="table">
             <colgroup>
                 <col v-for="name in columnNames" :key="name + 'Col'" :name="name" :style="{width: columnSizes[name] + 'px'}" />
             </colgroup>
@@ -51,8 +51,6 @@
         name: 'lodash'
     })
     import Api from '@/api'
-    //TODO integrate jquery correctly
-    import j from 'jquery'
     import { createNamespacedHelpers } from 'vuex';
 
 const VuexModule = 'Table';
@@ -160,8 +158,7 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
             },
             //TODO props from component
             columnSizes() {
-                let columns = { ...this.$store.state[VuexModule].columnsSizes
-                };
+                let columns = { ...this.$store.state[VuexModule].columnsSizes };
                 this.columnNames.forEach(val => {
                     if (!columns[val]) {
                         columns[val] = 100;
@@ -179,14 +176,12 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
 
             onMouseDown(e) {
                 this.currentTarget = e.target;
-                console.log(e);
-                this.targetName = j(e.target).attr('name');
+                this.targetName = e.target.getAttribute('name');
             },
             onMouseMove(e) {
                 if (e.which) {
                     let newWidth = e.pageX - this.currentTarget.offsetLeft;
                     if (newWidth > 20) {
-                        j('col[name="' + this.targetName + '"]').css('width', newWidth + 'px')
                         this.columnSizes[this.targetName] = newWidth;
                     }
                 }
@@ -204,12 +199,11 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
                 }
                 let clientWindowHeight = document.documentElement.clientHeight;
                 let pageOffset = window.pageYOffset || document.documentElement.scrollTop;
-                let tableOffset = j('table').offset().top + j('table').height();
+                let tableOffset = this.$refs.table.offsetTop + this.$refs.table.offsetHeight;
                 if (pageOffset == tableOffset) {
                    // console.log('stickyheader');
                 }
                 if (clientWindowHeight + pageOffset > tableOffset) {
-                   // console.log(clientWindowHeight + pageOffset, tableOffset);
                     this.loadMoreCounter++;
                 }
             },
