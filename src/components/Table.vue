@@ -2,7 +2,7 @@
     <div class="loading" v-if="!loadingCompleted"></div>
     <div v-else @mouseup="onMouseUp">
 
-        <TableInfo vuexModel="Table" :shownRowsAmount="items.length" />
+        <TableInfo v-if="info" vuexModel="Table" :shownRowsAmount="shownItems.length" />
 
         <table :class="{resizable: resizable}" class="table table-striped" ref="table">
             <colgroup>
@@ -13,15 +13,15 @@
                     <th :key="name" :name="name" @mousedown="onMouseDown" @mousemove="onMouseMove">
 <!--
                         <template v-if="name == 'id'">
-                            <input type="checkbox" name="selectAll" />
+                            <input type="checkbox" name="selectAll" @change="selectAll" v-model="selectAllChecked"/>
                         </template>
 -->
                         {{name}}
                     </th>
                 </template>
             </thead>
-            <tbody v-show="items.length">
-                <tr v-for="item in items" :class="{selected: selected[item.id]}" :key="'tr'+item.id">
+            <tbody v-show="shownItems.length">
+                <tr v-for="item in shownItems" :class="{selected: selected[item.id]}" :key="'tr'+item.id">
                     <td v-for="(value, key) in item" :key="item.id + key">
                         <template v-if="key == 'id'">
                             <input type="checkbox" name="selectedRows" v-model="selectedRows" :value="value" />
@@ -37,9 +37,9 @@
                 </tr>
             </tbody>
         </table>
-        <p v-show="!items.length &amp;&amp; loadingCompleted">No data found </p>
+        <p v-show="!shownItems.length &amp;&amp; loadingCompleted">No data found </p>
         <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="rows.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
-        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="rows.length == items.length">Load more</b-button>
+        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="rows.length == shownItems.length">Load more</b-button>
     </div>
 </template>
 
@@ -53,8 +53,8 @@
     import Api from '@/api'
     import { createNamespacedHelpers } from 'vuex';
 
-const VuexModule = 'Table';
-const { mapMutations } = createNamespacedHelpers(VuexModule);
+    const VuexModule = 'Table';
+    const { mapMutations } = createNamespacedHelpers(VuexModule);
 
     export default {
         name: VuexModule,
@@ -73,7 +73,7 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
             fields: Array,
             loadingCompleted: {
                 type: Boolean,
-                default: false,
+                default: true,
             },
             pagination: Boolean,
             perPage: {
@@ -127,9 +127,9 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
                     : this.$store.state[VuexModule].loadMode;
             },
             //pagination processing
-            items() {
+            shownItems() {
                 if (this.loadMode == 'all') {
-                    return this.rows;
+                    return [...this.rows];
                 }
                 if (this.loadMode == 'pagination') {
                     var from = this.rowsPerPage * (this.page - 1),
@@ -153,7 +153,7 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
             },
 
             columnNames() {
-                let fields = this.lodash.keys(this.rows[0]);
+                let fields = Object.keys(this.rows[0])
                 return this.fields || fields;
             },
             //TODO props from component
@@ -173,7 +173,6 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
                 this.page = 1;
                 this.loadMoreCounter = 1;
             },
-
             onMouseDown(e) {
                 this.currentTarget = e.target;
                 this.targetName = e.target.getAttribute('name');
@@ -198,12 +197,13 @@ const { mapMutations } = createNamespacedHelpers(VuexModule);
                     return;
                 }
                 let clientWindowHeight = document.documentElement.clientHeight;
-                let pageOffset = window.pageYOffset || document.documentElement.scrollTop;
-                let tableOffset = this.$refs.table.offsetTop + this.$refs.table.offsetHeight;
-                if (pageOffset == tableOffset) {
+                let scrollOffset = window.pageYOffset || document.documentElement.scrollTop;
+                let [tableOffset, tableHeight] = [this.$refs.table.offsetTop, 
+                                                  this.$refs.table.offsetHeight];
+                if (scrollOffset >= tableOffset) {
                    // console.log('stickyheader');
                 }
-                if (clientWindowHeight + pageOffset > tableOffset) {
+                if (windowHeight + scrollOffset > tableOffset + tableHeight) {
                     this.loadMoreCounter++;
                 }
             },
