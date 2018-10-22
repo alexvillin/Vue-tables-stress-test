@@ -1,11 +1,28 @@
 # Vue tables stress test
-### Here I use Vue-CLI 3, VueX, Vue-router 
-
-- The main purpose is test Vue processing with a lot of data
-- 1000 rows for table with reactive variables with checkboxes and selectboxes in each row, finally > 3000 watchers on the page
-- The first page (Data A) contains resizable table with native bootstrap styling (`@/components/Table.vue`)
- - The second page (Data B) contains Bootstrap-Vue table components like `b-table`, `b-form-select`, `b-form-checkbox` (`@/components/TableVueBootstrap.vue`)
-- Child component `@/components/TableInfo.vue` for info block where you can change the load Mode ('pagination', 'lazyload', 'handle load' or show all data at once), filter rows and change rows amount when pagination is active
+### Here I use Vue-CLI 3, VueX, Vue-router, Jest unit tests
+Table rendering example with a lot of functionality inside
+- The main purpose is test Vue processing with a lots of data
+- 1000 rows for table with reactive variables + checkboxes and selectboxes in each row, finally > 3000 watchers on the page: common situation but very expensive for js frameworks
+- The first page (Data A) contains Table component: resizable table with css bootstrap 4 styling and sorting by field (`src/components/Table.vue`)
+```html
+   <Table resizable :loading-completed="loading" perPage="5" info :tableData="data"/>
+```
+ - The second page (Data B) contains Bootstrap-Vue table component + Bootstrap-Vue components for select box and checkbox and the same functionality (`src/components/TableVueBootstrap.vue`)
+ ```html
+   <TableBootstrapVue resizable :loading-completed="loading" perPage="10" info pagination />
+ ```
+- Child component `src/components/TableInfo.vue`
+```html
+   <TableInfo vuexModel="Table" :shownRowsAmount="items.length" perPage="7" />
+```
+ Info block where you can 
+  + search through table
+  + show rows counter, visible rows counter, pages amount (statistics) 
+  + dynamically change the load Mode ('pagination', 'lazyload', 'handle load' or show all data at once)
+  + change rows amount when pagination is active
+  + check-in all items on page with one click
+  + show only checked items
+  + sort table data by fields
 
 -------------------------------------------
 ## Project setup
