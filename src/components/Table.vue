@@ -1,22 +1,23 @@
 <template>
     <div class="loading" v-if="!loadingCompleted"></div>
     <div v-else @mouseup="onMouseUp">
+        <notifications group="table"/>
 
         <TableInfo v-if="info" vuexModel="Table" :shownRowsAmount="shownItems.length" />
 
-        <table :class="{resizable: resizable}" class="table table-striped" ref="table">
+        <table class="table table-striped" ref="table" name="table">
             <colgroup>
                 <col v-for="name in columnNames" :key="name + 'Col'" :name="name" :style="{width: columnSizes[name] + 'px'}" />
             </colgroup>
-            <thead>
+            <thead @mousemove="onMouseMove">
                 <template v-for="name in columnNames">
-                    <th :key="name" :name="name" @mousedown="onMouseDown" @mousemove="onMouseMove">
-<!--
+                    <th :key="name" :name="name" @click="sortBy(name)">
                         <template v-if="name == 'id'">
-                            <input type="checkbox" name="selectAll" @change="selectAll" v-model="selectAllChecked"/>
+                            <input type="checkbox" name="selectAll" @change="selectAllVisibleRows" v-model="selectAllChecked[page]"/>
                         </template>
--->
-                        {{name}}
+                        <span>{{name}}</span>
+                        <v-icon name="sort-down" v-show="activeField == name"></v-icon>
+                        <div v-if="resizable" class="divider" @mousedown="onMouseDown"></div>
                     </th>
                 </template>
             </thead>
@@ -37,9 +38,10 @@
                 </tr>
             </tbody>
         </table>
-        <p v-show="!shownItems.length &amp;&amp; loadingCompleted">No data found </p>
-        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="rows.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
-        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="rows.length == shownItems.length">Load more</b-button>
+        <p id="no-data-found" v-show="!shownItems.length &amp;&amp; loadingCompleted">No data found </p>
+        <b-pagination-nav :link-gen="linkGen" :number-of-pages="totalPages" v-model="page" v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" />
+<!--        <b-pagination id="pagination" v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="rows.length" v-model="page" :per-page="rowsPerPage"></b-pagination>-->
+        <b-button id="load-more" v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="rows.length == shownItems.length">Load more</b-button>
     </div>
 </template>
 
@@ -50,14 +52,16 @@
     Vue.use(VueLodash, {
         name: 'lodash'
     })
+
     import Api from '@/api'
+    import Helper from '@/helper'
     import { createNamespacedHelpers } from 'vuex';
 
     const VuexModule = 'Table';
     const { mapMutations } = createNamespacedHelpers(VuexModule);
 
     export default {
-        name: VuexModule,
+        name: 'Table',
         components: {
             TableInfo
         },
@@ -88,13 +92,15 @@
 
         data: function() {
             return {
-                page: 1,
+                page: parseInt(this.$route.query.page) || 1,
                 loadMoreCounter: 1,
                 currentTarget: {},
                 selectedRows: [],
                 markers: this.$store.state.markers || [],
                 statuses: this.$store.state.statuses || [],
                 rowsPerPage: this.perPage,
+                selectAllChecked: {},
+                activeField: ''
             }
         },
         created: function() {
@@ -103,6 +109,7 @@
             Api.localStorage.tableCellsWidth.get().then(resp => {
                 this.setColumnsSizes(resp);
             })
+            //TODO add catch page number from url string and set this.page
         },
 
         updated: function() {
@@ -117,14 +124,13 @@
         },
 
         computed: {
-            rows() {
-                //Component can use data from storage or directly from parent scope
-                return this.tableData || this.$store.state[VuexModule].tableData;
-            }, 
             loadMode() {
                 return this.pagination 
                     ? 'pagination' 
                     : this.$store.state[VuexModule].loadMode;
+            },
+            defaultColumnWidth(){
+                return Math.ceil(Helper.getWindowWidth() / this.columnNames.length);
             },
             //pagination processing
             shownItems() {
@@ -138,12 +144,20 @@
                 }
                 return this.rows.slice(0, this.rowsPerPage * this.loadMoreCounter);
             },
+            shownItemsIds() {
+                return this.lodash.map(this.shownItems, 'id');
+            },
+            rows() {
+                this.resetProperties();
+                //Component can use data from storage or directly from parent scope
+                return this.tableData || this.$store.state[VuexModule].tableData;
+            },
             totalPages() {
                 return Math.ceil(this.rows.length / this.rowsPerPage);
             },
             //selected helper
-            //TODO select all checkbox
             selected() {
+                console.log(123);
                 let selected = {};
                 this.selectedRows.forEach(id => {
                     selected[id] = true;
@@ -151,7 +165,6 @@
                 this.setSelected(this.selectedRows);
                 return selected;
             },
-
             columnNames() {
                 let fields = Object.keys(this.rows[0])
                 return this.fields || fields;
@@ -159,9 +172,10 @@
             //TODO props from component
             columnSizes() {
                 let columns = { ...this.$store.state[VuexModule].columnsSizes };
+                //check for custom column nanes from props
                 this.columnNames.forEach(val => {
                     if (!columns[val]) {
-                        columns[val] = 100;
+                        columns[val] = this.defaultColumnWidth;
                     }
                 })
                 this.setColumnsSizes(columns);
@@ -174,11 +188,11 @@
                 this.loadMoreCounter = 1;
             },
             onMouseDown(e) {
-                this.currentTarget = e.target;
-                this.targetName = e.target.getAttribute('name');
+                this.currentTarget = e.target.closest('th');
+                this.targetName = e.target.closest('th').getAttribute('name');
             },
             onMouseMove(e) {
-                if (e.which) {
+                if (e.which && this.resizable) {
                     let newWidth = e.pageX - this.currentTarget.offsetLeft;
                     if (newWidth > 20) {
                         this.columnSizes[this.targetName] = newWidth;
@@ -186,28 +200,48 @@
                 }
             },
             onMouseUp() {
-                if(this.currentTarget.tagName){
+                if(this.currentTarget.tagName && this.resizable){
                     this.currentTarget = {}
                     this.setColumnsSizes(this.columnSizes);
                     Api.localStorage.tableCellsWidth.set(this.columnSizes)
                 }
             },
+            selectAllVisibleRows(){
+                if(this.selectAllChecked[this.page]){
+                    Helper.mergeArrays(this.selectedRows, this.shownItemsIds);
+                } else {
+                    Helper.diffArrays(this.selectedRows, this.shownItemsIds);
+                }
+                Vue.notify({group: 'table', text: 'Selected ' + this.selectedRows.length + 'items'})
+            },
             loadMoreCheck() {
                 if (this.loadMode !== 'lazyLoad') {
                     return;
                 }
-                let clientWindowHeight = document.documentElement.clientHeight;
-                let scrollOffset = window.pageYOffset || document.documentElement.scrollTop;
+                let clientWindowHeight = Helper.getWindowHeight();
+                let scrollOffset = Helper.getScrollOffset();
                 let [tableOffset, tableHeight] = [this.$refs.table.offsetTop, 
                                                   this.$refs.table.offsetHeight];
                 if (scrollOffset >= tableOffset) {
                    // console.log('stickyheader');
                 }
-                if (windowHeight + scrollOffset > tableOffset + tableHeight) {
+                if (clientWindowHeight + scrollOffset > tableOffset + tableHeight) {
                     this.loadMoreCounter++;
                 }
             },
+            //uniq url for pages
+            linkGen(page) {
+                return {
+                    path: '?page=' + page
+                }
+            },
+            sortBy(fieldName) {
+                this.activeField = fieldName; 
+                let orderedTable = this.lodash.orderBy(this.rows, fieldName);
+                this.setTable(orderedTable);
+            },
             ...mapMutations([
+                'setTable',
                 'setSelected',
                 'setColumnsSizes',
             ]),
@@ -217,21 +251,14 @@
 </script>
 
 <style scoped lang="scss" rel="stylesheet/scss">
-    th {
-        position: relative;
-        min-width: 10px;
+    table {
+        th {
+            position: relative;
+            min-width: 10px;
 
-        &:after {
-            position: absolute;
-            width: 3px;
-            height: 100%;
-            top: 0;
-            right: 0px;
-            content: '';
-            z-index: 100;
-            cursor: col-resize;
-            background-color: lightgray;
-            border-radius: 50%;
+            span {
+                cursor:pointer;
+            }
         }
     }
 
@@ -243,6 +270,17 @@
 
     .selected {
         background-color: lightgreen !important;
+    }
+    .divider {
+        position: absolute;
+        width: 5px;
+        height: 100%;
+        top: 0;
+        right: 0px;
+        z-index: 100;
+        cursor: col-resize;
+        background-color: lightgray;
+        border-radius: 50%;
     }
 
 </style>

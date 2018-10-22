@@ -39,9 +39,11 @@
             </b-col>
 
             <b-col sm="2" >
-               <b-button v-if="showOnlySelected" title="Delete items" @click="deleteSelected" size="sm">
+<!--
+                <b-button v-if="showOnlySelected" title="Delete items" @click="deleteSelected" size="sm">
                     Del
                 </b-button>
+-->
                 <b-button v-if="showOnlySelected" title="Show all" @click="toggleSelected" size="sm">
                     Show all data
                 </b-button>

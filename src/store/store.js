@@ -4,9 +4,6 @@ import Table from '@/store/modules/Table';
 import TableBootstrapVue from '@/store/modules/TableBootstrapVue';
 
 Vue.use(Vuex);
-//Use component names for Vuex modules
-//TODO: create files for modules
-
 
 export default new Vuex.Store({
     modules: {

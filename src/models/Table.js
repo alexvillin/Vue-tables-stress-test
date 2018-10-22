@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import Helper from '@/helper'
 
 class TableModel {
     constructor(data) {
@@ -6,18 +7,14 @@ class TableModel {
         this.date = this.prepareDate(data)
         this.status = data.status
         this.type = data.type
-        this.createdon = this.formatDate(data.createdon)
+        this.createdon = Helper.formatDate(data.createdon)
         this.file = data.file
         this.transcription = data.transcription
     }
 
-    formatDate(val) {
-        return Vue.moment(val).format("DD.MM.YYYY hh:mm:ss")
-    }
-
     prepareDate(obj) {
-        obj.start = this.formatDate(obj.start);
-        obj.finish = this.formatDate(obj.finish);
+        obj.start = Helper.formatDate(obj.start);
+        obj.finish = Helper.formatDate(obj.finish);
         return (obj.start !== obj.finish) 
             ? obj.start + "-" + obj.finish 
             : obj.start

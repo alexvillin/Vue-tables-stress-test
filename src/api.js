@@ -5,7 +5,7 @@ Vue.use(Notifications)
 
 export default {
     table: {
-        get: function (url) {
+        get(url) {
             return Vue.axios.get(url)
                 .catch((e) => {
                     Vue.notify({
