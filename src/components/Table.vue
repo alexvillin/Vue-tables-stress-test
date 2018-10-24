@@ -11,9 +11,9 @@
             </colgroup>
             <thead @mousemove="onMouseMove">
                 <template v-for="name in columnNames">
-                    <th :key="name" :name="name" @click="sortBy(name)">
+                    <th :key="name" :name="name">
                         <template v-if="name == 'id'">
-                            <input type="checkbox" name="selectAll" @change="selectAllVisibleRows" v-model="selectAllChecked[page]"/>
+                            <input type="checkbox" name="selectAll" @change="selectAllVisibleRows" @click.stop v-model="selectAllChecked[page]"/>
                         </template>
                         <span>{{name}}</span>
                         <v-icon name="sort-down" v-show="activeField == name"></v-icon>
@@ -109,7 +109,6 @@
             Api.localStorage.tableCellsWidth.get().then(resp => {
                 this.setColumnsSizes(resp);
             })
-            //TODO add catch page number from url string and set this.page
         },
 
         updated: function() {
@@ -148,7 +147,6 @@
                 return this.lodash.map(this.shownItems, 'id');
             },
             rows() {
-                this.resetProperties();
                 //Component can use data from storage or directly from parent scope
                 return this.tableData || this.$store.state[VuexModule].tableData;
             },
@@ -157,7 +155,6 @@
             },
             //selected helper
             selected() {
-                console.log(123);
                 let selected = {};
                 this.selectedRows.forEach(id => {
                     selected[id] = true;
@@ -232,14 +229,14 @@
             //uniq url for pages
             linkGen(page) {
                 return {
-                    path: '?page=' + page
+                    query: { ...this.$route.query, page }
                 }
             },
-            sortBy(fieldName) {
-                this.activeField = fieldName; 
-                let orderedTable = this.lodash.orderBy(this.rows, fieldName);
-                this.setTable(orderedTable);
-            },
+//            sortBy(fieldName) {
+//                this.activeField = fieldName; 
+//                let orderedTable = this.lodash.orderBy(this.rows, fieldName);
+//                this.setTable(orderedTable);
+//            },
             ...mapMutations([
                 'setTable',
                 'setSelected',

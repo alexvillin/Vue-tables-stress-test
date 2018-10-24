@@ -140,6 +140,11 @@
                 this.$store.commit(`${this.vuexModel}/setLoadMode`, val);
             },
         },
+        watch: {
+            rowsPerPage(val) {
+                this.$router.push({ query: { ...this.$route.query, perPage: val }})
+            }
+        }
     }
 
 </script>
