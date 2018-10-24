@@ -142,7 +142,7 @@
         },
         watch: {
             rowsPerPage(val) {
-                this.$router.push({ query: { ...this.$route.query, perPage: val }})
+                this.$parent.$emit('perPageChanged', val);
             }
         }
     }

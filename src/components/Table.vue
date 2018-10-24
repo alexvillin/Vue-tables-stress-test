@@ -70,10 +70,6 @@
                 type: Boolean,
                 default: false
             },
-            tableData: {
-                type: Array,
-                //default: () => []
-            },
             fields: Array,
             loadingCompleted: {
                 type: Boolean,
@@ -92,7 +88,7 @@
 
         data: function() {
             return {
-                page: parseInt(this.$route.query.page) || 1,
+                page: 1,
                 loadMoreCounter: 1,
                 currentTarget: {},
                 selectedRows: [],
@@ -108,6 +104,9 @@
             //get data from loaal storage
             Api.localStorage.tableCellsWidth.get().then(resp => {
                 this.setColumnsSizes(resp);
+            })
+            this.$on('perPageChanged', (val) => {
+                this.rowsPerPage = +val;
             })
         },
 
@@ -147,8 +146,7 @@
                 return this.lodash.map(this.shownItems, 'id');
             },
             rows() {
-                //Component can use data from storage or directly from parent scope
-                return this.tableData || this.$store.state[VuexModule].tableData;
+                return this.$store.state[VuexModule].tableData;
             },
             totalPages() {
                 return Math.ceil(this.rows.length / this.rowsPerPage);
@@ -163,7 +161,7 @@
                 return selected;
             },
             columnNames() {
-                let fields = Object.keys(this.rows[0])
+                let fields = this.lodash.keys(this.rows[0])
                 return this.fields || fields;
             },
             //TODO props from component
