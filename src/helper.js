@@ -37,8 +37,21 @@ const Helper = {
             console.error("Not an array passed");
         }
         return arr1;
+    },
+    isElementBottomVisible(el){
+        let clientWindowHeight = this.getWindowHeight();
+        let scrollOffset = this.getScrollOffset();
+        if (clientWindowHeight + scrollOffset > el.offsetTop + el.offsetHeight) {
+            return true;
+        }
+    },
+    isElementTopVisible(el){
+        let clientWindowHeight = this.getWindowHeight();
+        let scrollOffset = this.getScrollOffset();
+        if (clientWindowHeight + scrollOffset > el.offsetTop) {
+            return true;
+        }
     }
-
 }
 
 export default Helper;

@@ -55,6 +55,7 @@
 
     import Api from '@/api'
     import Helper from '@/helper'
+    import TableFields from '@/models/TableFields'
     import { createNamespacedHelpers } from 'vuex';
 
     const VuexModule = 'Table';
@@ -70,7 +71,10 @@
                 type: Boolean,
                 default: false
             },
-            fields: Array,
+            fields: { 
+                type: Array,
+                default: TableFields
+            },
             loadingCompleted: {
                 type: Boolean,
                 default: true,
@@ -109,7 +113,6 @@
                 this.rowsPerPage = +val;
             })
         },
-
         updated: function() {
             this.$nextTick(() => {
                 if (this.loadMode == 'lazyLoad') {
@@ -118,7 +121,7 @@
             })
         },
         destroyed: function() {
-            window.removeEventListener('scroll', this.loadMoreCheck);
+            window.removeEventListener('scroll');
         },
 
         computed: {
@@ -162,7 +165,7 @@
             },
             columnNames() {
                 let fields = this.lodash.keys(this.rows[0])
-                return this.fields || fields;
+                return this.lodash.map(this.fields, 'key') || fields;
             },
             //TODO props from component
             columnSizes() {
@@ -218,7 +221,7 @@
                 let [tableOffset, tableHeight] = [this.$refs.table.offsetTop, 
                                                   this.$refs.table.offsetHeight];
                 if (scrollOffset >= tableOffset) {
-                   // console.log('stickyheader');
+                    // console.log('stickyheader');
                 }
                 if (clientWindowHeight + scrollOffset > tableOffset + tableHeight) {
                     this.loadMoreCounter++;

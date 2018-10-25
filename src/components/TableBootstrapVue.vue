@@ -5,7 +5,7 @@
 
         <TableInfo vuexModel="TableBootstrapVue" :shownRowsAmount="items.length" />
 
-        <b-table striped hover :items="items" head-variant="light">
+        <b-table striped hover :items="items" head-variant="light" :fields="fields">
             <template slot="id" slot-scope="data">
                 <b-form-checkbox name="selectedRows" v-model="selectedRows" :value="data.item.id"></b-form-checkbox>
                 <div :style="{'background-color': markers[data.item.status]}" class="circle_status"></div>
@@ -25,6 +25,7 @@
     import TableInfo from '@/components/TableInfo.vue'
     import Api from '@/api'
     import { createNamespacedHelpers } from 'vuex';
+    import TableFields from '@/models/TableFields'
 
     const VuexModule = 'TableBootstrapVue';
     const { mapMutations } = createNamespacedHelpers(VuexModule);
@@ -43,7 +44,10 @@
                 type: Array,
                 //default: () => []
             },
-            fields: Array,
+            fields: {
+                type: Array,
+                default: TableFields
+            },
             loadingCompleted: {
                 type: Boolean,
                 default: false,
