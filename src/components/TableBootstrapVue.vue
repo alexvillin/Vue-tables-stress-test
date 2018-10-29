@@ -5,7 +5,7 @@
 
         <TableInfo vuexModel="TableBootstrapVue" :shownRowsAmount="items.length" />
 
-        <b-table striped hover :items="items" head-variant="light" :fields="fields">
+        <b-table striped hover :items="shownItems" head-variant="light" :fields="fields">
             <template slot="id" slot-scope="data">
                 <b-form-checkbox name="selectedRows" v-model="selectedRows" :value="data.item.id"></b-form-checkbox>
                 <div :style="{'background-color': markers[data.item.status]}" class="circle_status"></div>
@@ -16,8 +16,8 @@
                 </b-form-select>
             </template>
         </b-table>
-        <b-pagination v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" size="md" :total-rows="items.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
-        <b-button v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="items.length == rows.length">Load more</b-button>
+        <b-pagination v-show="isPagination &amp;&amp; totalPages &gt; 1" size="md" :total-rows="items.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
+        <b-button v-show="isHandle" variant="info" @click="loadMore()" :disabled="items.length == rows.length">Load more</b-button>
     </div>
 </template>
 
@@ -87,10 +87,8 @@
 
             })
         },
-
-
         computed: {
-           rows() {
+            rows() {
                 //Component can use data from storage or directly from parent scope
                 return this.tableData || this.$store.state[VuexModule].tableData;
             }, 
@@ -100,16 +98,16 @@
                     : this.$store.state[VuexModule].loadMode;
             },
             //pagination processing
-            items() {
-                if (this.loadMode == 'all') {
-                    return this.rows;
-                }
-                if (this.loadMode == 'pagination') {
+            shownItems() {
+                if (this.isPagination) {
                     var from = this.rowsPerPage * (this.page - 1),
                         to = from + this.rowsPerPage;
                     return this.rows.slice(from, to);
                 }
-                return this.rows.slice(0, this.rowsPerPage * this.loadMoreCounter);
+                if(this.isHandle || this.isLazyLoad){
+                    return this.rows.slice(0, this.rowsPerPage * this.loadMoreCounter);
+                }
+                return [...this.rows];
             },
             totalPages() {
                 return Math.ceil(this.rows.length / this.rowsPerPage);
@@ -123,12 +121,24 @@
                 this.setSelected(this.selectedRows);
                 return selected;
             },
+            isLazyLoad() {
+                return this.loadMode == 'lazyLoad';
+            },
+            isPagination() {
+                return this.loadMode == 'pagination';
+            },
+            isHandle() {
+                return this.loadMode == 'handle';
+            },
 
         },
         methods: {
             resetProperties() {
                 this.page = 1;
                 this.loadMoreCounter = 1;
+            },
+            loadMore(){
+                this.loadMoreCounter++;
             },
             ...mapMutations([
                 'setSelected',

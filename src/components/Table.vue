@@ -5,7 +5,7 @@
 
         <TableInfo v-if="info" vuexModel="Table" :shownRowsAmount="shownItems.length" />
 
-        <table class="table table-striped" ref="table" name="table">
+        <table class="table table-striped" v-lazy-load ref="table" name="table">
             <colgroup>
                 <col v-for="name in columnNames" :key="name + 'Col'" :name="name" :style="{width: columnSizes[name] + 'px'}" />
             </colgroup>
@@ -39,9 +39,9 @@
             </tbody>
         </table>
         <p id="no-data-found" v-show="!shownItems.length &amp;&amp; loadingCompleted">No data found </p>
-        <b-pagination-nav :link-gen="linkGen" :number-of-pages="totalPages" v-model="page" v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" />
+        <b-pagination-nav :link-gen="linkGen" :number-of-pages="totalPages" v-model="page" v-show="isPagination &amp;&amp; totalPages &gt; 1" />
 <!--        <b-pagination id="pagination" v-show="loadMode == 'pagination' &amp;&amp; totalPages &gt; 1" :total-rows="rows.length" v-model="page" :per-page="rowsPerPage"></b-pagination>-->
-        <b-button id="load-more" v-show="loadMode == 'handle'" variant="info" @click="loadMoreCounter++" :disabled="rows.length == shownItems.length">Load more</b-button>
+        <b-button id="load-more-button" v-show="isHandle" variant="info" @click="loadMore()" :disabled="rows.length == shownItems.length">Load more</b-button>
     </div>
 </template>
 
@@ -55,7 +55,8 @@
 
     import Api from '@/api'
     import Helper from '@/helper'
-    import TableFields from '@/models/TableFields'
+    import TableFieldsModel from '@/models/TableFields'
+    import lazyLoad from '@/directives/lazyLoad'
     import { createNamespacedHelpers } from 'vuex';
 
     const VuexModule = 'Table';
@@ -73,7 +74,7 @@
             },
             fields: { 
                 type: Array,
-                default: TableFields
+                default: TableFieldsModel
             },
             loadingCompleted: {
                 type: Boolean,
@@ -89,11 +90,10 @@
                 default: true
             }
         },
-
         data: function() {
             return {
                 page: 1,
-                loadMoreCounter: 1,
+                loadMoreCounter: 2,
                 currentTarget: {},
                 selectedRows: [],
                 markers: this.$store.state.markers || [],
@@ -103,8 +103,10 @@
                 activeField: ''
             }
         },
+        directives: {
+            lazyLoad
+        },
         created: function() {
-            window.addEventListener('scroll', this.loadMoreCheck);
             //get data from loaal storage
             Api.localStorage.tableCellsWidth.get().then(resp => {
                 this.setColumnsSizes(resp);
@@ -112,18 +114,14 @@
             this.$on('perPageChanged', (val) => {
                 this.rowsPerPage = +val;
             })
-        },
-        updated: function() {
-            this.$nextTick(() => {
-                if (this.loadMode == 'lazyLoad') {
-                    this.loadMoreCheck();
-                }
-            })
+            this.$on('uploadMoreData', function() {
+                if(this.isLazyLoad) this.loadMore();
+            });
         },
         destroyed: function() {
-            window.removeEventListener('scroll');
+            this.$off('perPageChanged');
+            this.$off('uploadMoreData');
         },
-
         computed: {
             loadMode() {
                 return this.pagination 
@@ -135,15 +133,15 @@
             },
             //pagination processing
             shownItems() {
-                if (this.loadMode == 'all') {
-                    return [...this.rows];
-                }
-                if (this.loadMode == 'pagination') {
+                if (this.isPagination) {
                     var from = this.rowsPerPage * (this.page - 1),
                         to = from + this.rowsPerPage;
                     return this.rows.slice(from, to);
                 }
-                return this.rows.slice(0, this.rowsPerPage * this.loadMoreCounter);
+                if(this.isHandle || this.isLazyLoad){
+                    return this.rows.slice(0, this.rowsPerPage * this.loadMoreCounter);
+                }
+                return [...this.rows];
             },
             shownItemsIds() {
                 return this.lodash.map(this.shownItems, 'id');
@@ -179,6 +177,15 @@
                 this.setColumnsSizes(columns);
                 return columns;
             },
+            isLazyLoad() {
+                return this.loadMode == 'lazyLoad';
+            },
+            isPagination() {
+                return this.loadMode == 'pagination';
+            },
+            isHandle() {
+                return this.loadMode == 'handle';
+            },
         },
         methods: {
             resetProperties() {
@@ -212,26 +219,16 @@
                 }
                 Vue.notify({group: 'table', text: 'Selected ' + this.selectedRows.length + 'items'})
             },
-            loadMoreCheck() {
-                if (this.loadMode !== 'lazyLoad') {
-                    return;
-                }
-                let clientWindowHeight = Helper.getWindowHeight();
-                let scrollOffset = Helper.getScrollOffset();
-                let [tableOffset, tableHeight] = [this.$refs.table.offsetTop, 
-                                                  this.$refs.table.offsetHeight];
-                if (scrollOffset >= tableOffset) {
-                    // console.log('stickyheader');
-                }
-                if (clientWindowHeight + scrollOffset > tableOffset + tableHeight) {
-                    this.loadMoreCounter++;
-                }
-            },
+
+//            },
             //uniq url for pages
             linkGen(page) {
                 return {
                     query: { ...this.$route.query, page }
                 }
+            },
+            loadMore(){
+                this.loadMoreCounter++;
             },
 //            sortBy(fieldName) {
 //                this.activeField = fieldName; 
