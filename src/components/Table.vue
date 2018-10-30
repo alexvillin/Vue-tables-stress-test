@@ -1,23 +1,22 @@
 <template>
     <div class="loading" v-if="!loadingCompleted"></div>
-    <div v-else @mouseup="onMouseUp">
+    <div v-else>
         <notifications group="table"/>
 
         <TableInfo v-if="info" vuexModel="Table" :shownRowsAmount="shownItems.length" />
 
-        <table class="table table-striped" v-lazy-load ref="table" name="table">
+        <table class="table table-striped" v-lazy-load v-resizable ref="table" name="table">
             <colgroup>
-                <col v-for="name in columnNames" :key="name + 'Col'" :name="name" :style="{width: columnSizes[name] + 'px'}" />
+                <col v-for="name in columnNames" :key="name + 'Col'" />
             </colgroup>
-            <thead @mousemove="onMouseMove">
+            <thead>
                 <template v-for="name in columnNames">
-                    <th :key="name" :name="name">
+                    <th :key="name">
                         <template v-if="name == 'id'">
                             <input type="checkbox" name="selectAll" @change="selectAllVisibleRows" @click.stop v-model="selectAllChecked[page]"/>
                         </template>
                         <span>{{name}}</span>
                         <v-icon name="sort-down" v-show="activeField == name"></v-icon>
-                        <div v-if="resizable" class="divider" @mousedown="onMouseDown"></div>
                     </th>
                 </template>
             </thead>
@@ -53,10 +52,10 @@
         name: 'lodash'
     })
 
-    import Api from '@/api'
     import Helper from '@/helper'
     import TableFieldsModel from '@/models/TableFields'
     import lazyLoad from '@/directives/lazyLoad'
+    import resizable from '@/directives/resizable'
     import { createNamespacedHelpers } from 'vuex';
 
     const VuexModule = 'Table';
@@ -94,7 +93,6 @@
             return {
                 page: 1,
                 loadMoreCounter: 2,
-                currentTarget: {},
                 selectedRows: [],
                 markers: this.$store.state.markers || [],
                 statuses: this.$store.state.statuses || [],
@@ -104,13 +102,10 @@
             }
         },
         directives: {
-            lazyLoad
+            lazyLoad,
+            resizable
         },
         created: function() {
-            //get data from loaal storage
-            Api.localStorage.tableCellsWidth.get().then(resp => {
-                this.setColumnsSizes(resp);
-            })
             this.$on('perPageChanged', (val) => {
                 this.rowsPerPage = +val;
             })
@@ -127,9 +122,6 @@
                 return this.pagination 
                     ? 'pagination' 
                     : this.$store.state[VuexModule].loadMode;
-            },
-            defaultColumnWidth(){
-                return Math.ceil(Helper.getWindowWidth() / this.columnNames.length);
             },
             //pagination processing
             shownItems() {
@@ -165,18 +157,6 @@
                 let fields = this.lodash.keys(this.rows[0])
                 return this.lodash.map(this.fields, 'key') || fields;
             },
-            //TODO props from component
-            columnSizes() {
-                let columns = { ...this.$store.state[VuexModule].columnsSizes };
-                //check for custom column nanes from props
-                this.columnNames.forEach(val => {
-                    if (!columns[val]) {
-                        columns[val] = this.defaultColumnWidth;
-                    }
-                })
-                this.setColumnsSizes(columns);
-                return columns;
-            },
             isLazyLoad() {
                 return this.loadMode == 'lazyLoad';
             },
@@ -191,25 +171,6 @@
             resetProperties() {
                 this.page = 1;
                 this.loadMoreCounter = 1;
-            },
-            onMouseDown(e) {
-                this.currentTarget = e.target.closest('th');
-                this.targetName = e.target.closest('th').getAttribute('name');
-            },
-            onMouseMove(e) {
-                if (e.which && this.resizable) {
-                    let newWidth = e.pageX - this.currentTarget.offsetLeft;
-                    if (newWidth > 20) {
-                        this.columnSizes[this.targetName] = newWidth;
-                    }
-                }
-            },
-            onMouseUp() {
-                if(this.currentTarget.tagName && this.resizable){
-                    this.currentTarget = {}
-                    this.setColumnsSizes(this.columnSizes);
-                    Api.localStorage.tableCellsWidth.set(this.columnSizes)
-                }
             },
             selectAllVisibleRows(){
                 if(this.selectAllChecked[this.page]){
