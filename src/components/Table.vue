@@ -6,9 +6,6 @@
         <TableInfo v-if="info" vuexModel="Table" :shownRowsAmount="shownItems.length" />
 
         <table class="table table-striped" v-lazy-load v-resizable ref="table" name="table">
-            <colgroup>
-                <col v-for="name in columnNames" :key="name + 'Col'" />
-            </colgroup>
             <thead>
                 <template v-for="name in columnNames">
                     <th :key="name">
@@ -64,7 +61,7 @@
     export default {
         name: 'Table',
         components: {
-            TableInfo
+            TableInfo,
         },
         props: {
             fields: { 

@@ -1,8 +1,9 @@
 import Vue from 'vue'
 import Helper from '@/helper'
 import Api from '@/api'
+import Colgroup from '@/components/Colgroup.vue'
 
-
+const ColgroupComponent = Vue.extend(Colgroup);
 const DividerComponent = Vue.extend({
     //    template: '<div @mousedown="onMouseDown" class="divider">',
     render(h) {
@@ -41,7 +42,7 @@ const resizable = {
             return;
         }
         let ths = el.querySelectorAll('th');
-        let columnsNodes = el.querySelectorAll('col');
+        let columnsNodes = createColumnNodes(el);
         let currentTarget;
         let targetIndex;
         let divider;
@@ -50,7 +51,7 @@ const resizable = {
 
         document.addEventListener('mouseup', onMouseUp);
         document.addEventListener('mousemove', onMouseMove);
-            
+
         //init 
         Api.localStorage.tableCellsWidth.get().then((response) => {
             ths.forEach((th, index) => {
@@ -70,9 +71,27 @@ const resizable = {
             })
         })
 
+        function createColumnNodes(el){
+            el = el.tagName == 'TABLE'
+                ? el
+                : el.querySelector('table')
+
+            let columns = el.querySelectorAll('col');
+            if(!columns.length){
+                columns = new ColgroupComponent({
+                    propsData: {
+                        amount: ths.length
+                    }
+                });
+                columns.$mount();
+                el.prepend(columns.$el);
+                columns = columns.$el.childNodes;
+            }
+            return columns;
+        }
+
         function setElementWidth(index, val) {
             columnsNodes[index].style.width = val + 'px';
-//            ths[index].style.width = val + 'px';
             columnsSizes[index] = val;
         }
 

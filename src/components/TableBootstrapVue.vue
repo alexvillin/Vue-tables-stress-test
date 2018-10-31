@@ -6,9 +6,6 @@
         <TableInfo vuexModel="TableBootstrapVue" :shownRowsAmount="shownItems.length" />
 
         <b-table striped hover v-lazy-load v-resizable :items="shownItems" head-variant="light" :fields="fields">
-            <template slot="table-colgroup">
-                <col v-for="field in fields" :key="'col' + field.key" />
-            </template>
             <template slot="id" slot-scope="data">
                 <b-form-checkbox name="selectedRows" v-model="selectedRows" :value="data.item.id"></b-form-checkbox>
                 <div :style="{'background-color': markers[data.item.status]}" class="circle_status"></div>
@@ -26,11 +23,10 @@
 
 <script>
     import TableInfo from '@/components/TableInfo.vue'
-    import Api from '@/api'
-    import { createNamespacedHelpers } from 'vuex';
     import TableFields from '@/models/TableFields'
     import lazyLoad from '@/directives/lazyLoad'
     import resizable from '@/directives/resizable'
+    import { createNamespacedHelpers } from 'vuex';
 
     const VuexModule = 'TableBootstrapVue';
     const { mapMutations } = createNamespacedHelpers(VuexModule);
