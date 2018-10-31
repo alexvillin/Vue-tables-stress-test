@@ -7,14 +7,10 @@ const lazyLoad = {
         
         function loadMoreCheck(){
             if (Helper.isElementBottomVisible(el)) {
-                console.log(1);
                 vnode.context.$emit('uploadMoreData');
             }
         } 
     },
-    unbind: function(){
-//        window.removeEventListener('scroll');
-    }
 };
 
 export default lazyLoad;

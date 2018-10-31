@@ -3,9 +3,12 @@
     <div v-if="!loadingCompleted" class="loading"></div>
     <div v-else v-cloak keep-alive variant="dark">
 
-        <TableInfo vuexModel="TableBootstrapVue" :shownRowsAmount="items.length" />
+        <TableInfo vuexModel="TableBootstrapVue" :shownRowsAmount="shownItems.length" />
 
-        <b-table striped hover :items="shownItems" head-variant="light" :fields="fields">
+        <b-table striped hover v-lazy-load v-resizable :items="shownItems" head-variant="light" :fields="fields">
+            <template slot="table-colgroup">
+                <col v-for="field in fields" :key="'col' + field.key" />
+            </template>
             <template slot="id" slot-scope="data">
                 <b-form-checkbox name="selectedRows" v-model="selectedRows" :value="data.item.id"></b-form-checkbox>
                 <div :style="{'background-color': markers[data.item.status]}" class="circle_status"></div>
@@ -16,8 +19,8 @@
                 </b-form-select>
             </template>
         </b-table>
-        <b-pagination v-show="isPagination &amp;&amp; totalPages &gt; 1" size="md" :total-rows="items.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
-        <b-button v-show="isHandle" variant="info" @click="loadMore()" :disabled="items.length == rows.length">Load more</b-button>
+        <b-pagination v-show="isPagination &amp;&amp; totalPages &gt; 1" size="md" :total-rows="rows.length" v-model="page" :per-page="rowsPerPage"></b-pagination>
+        <b-button v-show="isHandle" variant="info" @click="loadMore()" :disabled="shownItems.length == rows.length">Load more</b-button>
     </div>
 </template>
 
@@ -26,6 +29,8 @@
     import Api from '@/api'
     import { createNamespacedHelpers } from 'vuex';
     import TableFields from '@/models/TableFields'
+    import lazyLoad from '@/directives/lazyLoad'
+    import resizable from '@/directives/resizable'
 
     const VuexModule = 'TableBootstrapVue';
     const { mapMutations } = createNamespacedHelpers(VuexModule);
@@ -36,10 +41,6 @@
             TableInfo
         },
         props: {
-              resizable: {
-                type: Boolean,
-                default: false
-            },
             tableData: {
                 type: Array,
                 //default: () => []
@@ -62,30 +63,31 @@
                 default: true
             }
         },
-
         data: function() {
             return {
                 page: 1,
                 loadMoreCounter: 1,
-                currentTarget: {},
                 selectedRows: [],
                 markers: this.$store.state.markers || [],
                 statuses: this.$store.state.statuses || [],
                 rowsPerPage: this.perPage,
             }
         },
-        created: function() {
-//            window.addEventListener('scroll', this.loadMoreCheck);
-            //get data from loaal storage
-            Api.localStorage.tableCellsWidth.get().then(resp => {
-                this.setColumnsSizes(resp);
-            })
+        directives: {
+            lazyLoad,
+            resizable
         },
-
-        updated: function() {
-            this.$nextTick(() => {
-
-            })
+        created: function() {
+            this.$on('perPageChanged', (val) => {
+                this.rowsPerPage = +val;
+            });
+            this.$on('uploadMoreData', function() {
+                if(this.isLazyLoad) this.loadMore();
+            });
+        },
+        destroyed: function() {
+            this.$off('perPageChanged');
+            this.$off('uploadMoreData');
         },
         computed: {
             rows() {
@@ -130,7 +132,6 @@
             isHandle() {
                 return this.loadMode == 'handle';
             },
-
         },
         methods: {
             resetProperties() {
@@ -142,7 +143,6 @@
             },
             ...mapMutations([
                 'setSelected',
-                'setColumnsSizes',
             ]),
         },
     }

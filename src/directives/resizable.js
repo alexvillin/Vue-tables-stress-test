@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Helper from '@/helper'
-    import Api from '@/api'
+import Api from '@/api'
 
 
 const DividerComponent = Vue.extend({
@@ -21,7 +21,6 @@ const DividerComponent = Vue.extend({
             },
             attrs: {
                 class: 'divider',
-//                draggable: true
             },
             on: {
                 mousedown: this.onMouseDown
@@ -37,7 +36,10 @@ const DividerComponent = Vue.extend({
 
 const resizable = {
 
-    bind: function (el) {
+    bind: function (el, binding) {
+        if(binding.value !== undefined && !binding.value){
+            return;
+        }
         let ths = el.querySelectorAll('th');
         let columnsNodes = el.querySelectorAll('col');
         let currentTarget;
@@ -96,9 +98,6 @@ const resizable = {
         }
     },
     unbind: function () {
-        this.$off('setMouseDownTarget');
-//        document.removeEventListener('mouseup');
-//        document.removeEventListener('mousemove');
     }
 };
 

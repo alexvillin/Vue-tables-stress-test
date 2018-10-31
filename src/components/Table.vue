@@ -67,10 +67,6 @@
             TableInfo
         },
         props: {
-            resizable: {
-                type: Boolean,
-                default: false
-            },
             fields: { 
                 type: Array,
                 default: TableFieldsModel
@@ -181,7 +177,6 @@
                 Vue.notify({group: 'table', text: 'Selected ' + this.selectedRows.length + 'items'})
             },
 
-//            },
             //uniq url for pages
             linkGen(page) {
                 return {
@@ -199,7 +194,6 @@
             ...mapMutations([
                 'setTable',
                 'setSelected',
-                'setColumnsSizes',
             ]),
         },
     }
