@@ -5,14 +5,14 @@
         },
         {
           key: 'date',
-          sortable: false
+          sortable: true
         },
         {
           key: 'status',
         },
         {
           key: 'type',
-          sortable: false
+          sortable: true
         },
         {
           key: 'createdon',
@@ -20,11 +20,11 @@
         },
         {
           key: 'file',
-          sortable: false
+          sortable: true
         },
         {
           key: 'transcription',
-          sortable: false
+          sortable: true
         },
 ]
  

@@ -62,7 +62,7 @@
         data: function() {
             return {
                 page: 1,
-                loadMoreCounter: 1,
+                loadMoreCounter: 3,
                 selectedRows: [],
                 markers: this.$store.state.markers || [],
                 statuses: this.$store.state.statuses || [],

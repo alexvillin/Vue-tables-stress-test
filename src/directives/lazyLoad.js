@@ -9,7 +9,7 @@ const lazyLoad = {
             if (Helper.isElementBottomVisible(el)) {
                 vnode.context.$emit('uploadMoreData');
             }
-        } 
+        }
     },
 };
 

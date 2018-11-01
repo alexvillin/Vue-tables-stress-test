@@ -54,10 +54,10 @@ const resizable = {
 
         //init 
         Api.localStorage.tableCellsWidth.get().then((response) => {
-            ths.forEach((th, index) => {
+            [...ths].forEach((th, index) => {
                 //mount dividers
                 divider = new DividerComponent().$mount();
-                th.append(divider.$el);
+                th.appendChild(divider.$el);
                 //listen to click
                 divider.$on('setMouseDownTarget', function (target) {
                     currentTarget = target;
@@ -77,15 +77,17 @@ const resizable = {
                 : el.querySelector('table')
 
             let columns = el.querySelectorAll('col');
+            let colgroup;
+
             if(!columns.length){
-                columns = new ColgroupComponent({
+                colgroup = new ColgroupComponent({
                     propsData: {
                         amount: ths.length
                     }
                 });
-                columns.$mount();
-                el.prepend(columns.$el);
-                columns = columns.$el.childNodes;
+                colgroup.$mount();
+                el.insertBefore(colgroup.$el, el.childNodes[0]);
+                columns = colgroup.$el.childNodes;
             }
             return columns;
         }

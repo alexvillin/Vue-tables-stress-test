@@ -85,7 +85,7 @@
         data: function() {
             return {
                 page: 1,
-                loadMoreCounter: 2,
+                loadMoreCounter: 3,
                 selectedRows: [],
                 markers: this.$store.state.markers || [],
                 statuses: this.$store.state.statuses || [],
