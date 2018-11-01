@@ -5,11 +5,11 @@ Table rendering example with a lot of functionality inside
 - 1000 rows for table with reactive variables + checkboxes and selectboxes in each row, finally > 3000 watchers on the page: common situation but very expensive for js frameworks
 - The first page (Data A) contains Table component: resizable table with css bootstrap 4 styling and sorting by field (`src/components/Table.vue`)
 ```html
-   <Table resizable :loading-completed="loading" perPage="5" info v-resizable v-lazy-load />
+   <Table v-resizable v-lazy-load :loading-completed="loading" perPage="5" info />
 ```
  - The second page (Data B) contains Bootstrap-Vue table component + Bootstrap-Vue components for select box and checkbox and the same functionality (`src/components/TableVueBootstrap.vue`)
  ```html
-   <TableBootstrapVue resizable :loading-completed="loading" perPage="10" info pagination />
+   <TableBootstrapVue :loading-completed="loading" perPage="10" info pagination />
  ```
 - Child component `src/components/TableInfo.vue`
 ```html
