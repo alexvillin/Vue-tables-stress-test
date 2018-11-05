@@ -5,5 +5,7 @@ module.exports = {
         ''
       ]
     }
-  }
+  },
+    baseUrl: '/Vue-tables-stress-test/'
+    
 }
